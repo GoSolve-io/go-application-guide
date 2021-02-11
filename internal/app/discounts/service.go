@@ -60,7 +60,8 @@ func (s *Service) CalculateDiscount(ctx context.Context, r *app.DiscountRequest)
 
 	discount := selectOptimalDiscount(
 		newBikeWeightDiscount(r.ReservationValue, r.Customer, r.Bike),
-		newEnvironmentalDiscount(r.ReservationValue, r.Customer, weather, incidents),
+		newTemperatureDiscount(r.ReservationValue, r.Customer, weather),
+		newIncidentsDiscount(r.ReservationValue, r.Customer, incidents),
 		newBusinessCustomerDiscount(r.ReservationValue, r.Customer),
 	)
 
