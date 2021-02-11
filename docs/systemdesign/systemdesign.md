@@ -1,5 +1,7 @@
 # System design
 
+To fully understand this design you should probably take a look at [business requirements](/docs/businessrequirements/requirements.md). If you haven't already, please do it first.
+
 ## System context
 
 Our system is supposed to be used by some other tenant system. Overall context looks like this:
