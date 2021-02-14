@@ -56,5 +56,6 @@ Build and API for bike rental service.
             If reservation time is >= 24h, apply 15% discount
     1. Combining discounts
         If customer applies to more than 1 discount, choose only one with highest value.
-1. Authorization
-    Don't use any authorization (for simplicity of the example).
+1. Authentication/Authorization
+   1. Simple authentication (TODO: specify)
+   2. No special authorization.

@@ -78,7 +78,7 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		return app.NewValidationError("empty id")
 	}
 	if err := s.repository.Delete(ctx, id); err != nil {
-		if errors.Is(err, app.NotFoundError{}) {
+		if app.IsNotFoundError(err) {
 			return nil
 		}
 		return fmt.Errorf("deleting bike in repository: %w", err)

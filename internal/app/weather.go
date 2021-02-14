@@ -14,5 +14,5 @@ type WeatherRequest struct {
 
 // WeatherService provides weather data.
 type WeatherService interface {
-	GetWeather(context.Context, WeatherRequest) (Weather, error)
+	GetWeather(context.Context, WeatherRequest) (*Weather, error)
 }

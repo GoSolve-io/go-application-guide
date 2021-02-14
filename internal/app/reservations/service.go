@@ -57,24 +57,6 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 		}, nil
 	}
 
-	tx, err := s.reservationsRepo.StartTransaction(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("creating reservation transaction: %w", err)
-	}
-	// Rollback will be ignored if commit is called first.
-	defer tx.Rollback()
-
-	bikeAvailable, err := s.checkBikeAvailability(tx, *bike, req.From, req.To)
-	if err != nil {
-		return nil, fmt.Errorf("checking bike availability: %w", err)
-	}
-	if !bikeAvailable {
-		return &app.ReservationResponse{
-			Status: app.ReservationStatusRejected,
-			Reason: "bike not available in requested time range",
-		}, nil
-	}
-
 	value := s.calculateReservationValue(*bike, req.From, req.To)
 
 	discountResp, err := s.discountService.CalculateDiscount(ctx, app.DiscountRequest{
@@ -95,13 +77,18 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 		To:         req.To,
 		TotalValue: value - discountResp.Discount.Amount,
 	}
-	err = tx.CreateReservation(reservation)
-	if err != nil {
-		return nil, fmt.Errorf("creating reservation in repository: %w", err)
-	}
 
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commiting reservation transaction: %w", err)
+	// We expect repository to return app.ConflictError if reservation for that bike in that time range already exists.
+	err = s.reservationsRepo.CreateReservation(reservation)
+	if err != nil {
+		if app.IsConflictError(err) {
+			return &app.ReservationResponse{
+				Status: app.ReservationStatusRejected,
+				Reason: "bike not available in requested time range",
+			}, nil
+		}
+
+		return nil, fmt.Errorf("creating reservation in repository: %w", err)
 	}
 
 	return &app.ReservationResponse{
@@ -121,18 +108,6 @@ func (s *Service) fetchRealBike(ctx context.Context, bike app.Bike) (*app.Bike, 
 		return nil, fmt.Errorf("checking bike in repository: %w", err)
 	}
 	return existingBike, nil
-}
-
-func (s *Service) checkBikeAvailability(tx RepositoryTransaction, bike app.Bike, from, to time.Time) (bool, error) {
-	reservations, err := tx.ListReservations(bike.ID, from, to)
-	if err != nil {
-		return false, fmt.Errorf("listing existing reservations: %w", err)
-	}
-	if len(reservations) > 0 {
-		return false, nil
-	}
-
-	return true, nil
 }
 
 func (s *Service) calculateReservationValue(bike app.Bike, from, to time.Time) float64 {

@@ -47,7 +47,12 @@ func (s *Service) CalculateDiscount(ctx context.Context, r *app.DiscountRequest)
 		Location: r.Location,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("couldn't fetch weather data: %w", err)
+		// We're ok with nil weather value if weather for given location is not found.
+		if app.IsNotFoundError(err) {
+			weather = nil
+		} else {
+			return nil, fmt.Errorf("couldn't fetch weather data: %w", err)
+		}
 	}
 
 	incidents, err := s.incidentsService.GetIncidents(ctx, app.BikeIncidentsRequest{
@@ -55,7 +60,12 @@ func (s *Service) CalculateDiscount(ctx context.Context, r *app.DiscountRequest)
 		Proximity: incidentsProximity,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("couldn't fetch incidents data: %w", err)
+		// We're ok with nil incidents info if data for given location is not found.
+		if app.IsNotFoundError(err) {
+			incidents = nil
+		} else {
+			return nil, fmt.Errorf("couldn't fetch incidents data: %w", err)
+		}
 	}
 
 	discount := selectOptimalDiscount(

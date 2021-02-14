@@ -1,5 +1,11 @@
 package app
 
+import (
+	"fmt"
+
+	"github.com/badoux/checkmail"
+)
+
 // CustomerType represents customer type.
 type CustomerType int
 
@@ -15,6 +21,7 @@ type Customer struct {
 	Type      CustomerType
 	FirstName string
 	Surname   string
+	Email     string
 }
 
 // Validate validates customer data.
@@ -27,6 +34,17 @@ func (c Customer) Validate() error {
 
 	if c.FirstName == "" {
 		return NewValidationError("first name is required")
+	}
+
+	// For simplicity we use external library to validate emails.
+	// We can live with it in this case, but in concequence our domain now relies on some external code!
+	// So this is an exception that works only for well defined tasks (like email validation).
+	if c.Email != "" {
+		if err := checkmail.ValidateFormat(c.Email); err != nil {
+			return ValidationError{internalError: internalError{
+				Err: fmt.Errorf("invalid email address: %w", err),
+			}}
+		}
 	}
 
 	return nil

@@ -35,11 +35,11 @@ func newBikeWeightDiscount(resValue float64, customer app.Customer, bike app.Bik
 // Disount rules:
 // - individual customers only
 // - low outsie temperature
-func newTemperatureDiscount(resValue float64, customer app.Customer, weather app.Weather) app.Discount {
+func newTemperatureDiscount(resValue float64, customer app.Customer, weather *app.Weather) app.Discount {
 	if customer.Type != app.CustomerTypeIndividual {
 		return app.Discount{}
 	}
-	if weather.Temperature >= 10 {
+	if weather == nil || weather.Temperature >= 10 {
 		return app.Discount{}
 	}
 
