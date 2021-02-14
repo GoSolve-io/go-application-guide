@@ -82,6 +82,8 @@ The topic of the project is a **Bike rental service backend**.
    4. Overusing language features
       1. Channels: use mutex whenever it makes things simple
       2. Named returns: exception, not a rule
+   5. Always optimize code for better performance!
+      1. Just kidding, don't do that. Optimize for reading, care about fellow coworkers, not CPU cycles.
 8.  Links to other guides (**need more links**)
     1.  High abstraction level
         1.  https://www.gobeyond.dev/ - example repository and a series of blog posts.
