@@ -52,12 +52,12 @@ func newTemperatureDiscount(resValue float64, customer app.Customer, weather app
 // Disount rules:
 // - individual customers only
 // - incidents in neighborhood present.
-func newIncidentsDiscount(resValue float64, customer app.Customer, incidents app.BikeIncidentsInfo) app.Discount {
+func newIncidentsDiscount(resValue float64, customer app.Customer, incidents *app.BikeIncidentsInfo) app.Discount {
 	if customer.Type != app.CustomerTypeIndividual {
 		return app.Discount{}
 	}
 
-	if incidents.NumberOfIncidents < 3 {
+	if incidents == nil || incidents.NumberOfIncidents < 3 {
 		return app.Discount{}
 	}
 

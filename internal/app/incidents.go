@@ -19,5 +19,5 @@ type BikeIncidentsRequest struct {
 
 // BikeIncidentsService provides information about bike incidents.
 type BikeIncidentsService interface {
-	GetIncidents(context.Context, BikeIncidentsRequest) (BikeIncidentsInfo, error)
+	GetIncidents(context.Context, BikeIncidentsRequest) (*BikeIncidentsInfo, error)
 }
