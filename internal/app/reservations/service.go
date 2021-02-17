@@ -10,7 +10,7 @@ import (
 	"github.com/nglogic/go-example-project/internal/app"
 )
 
-// Service provies methods for making reservations.
+// Service provides methods for making reservations.
 type Service struct {
 	discountService  app.DiscountService
 	bikeService      app.BikeService
