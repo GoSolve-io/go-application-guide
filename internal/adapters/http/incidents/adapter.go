@@ -53,7 +53,7 @@ func (a *Adapter) GetIncidents(ctx context.Context, req app.BikeIncidentsRequest
 	urlVal := fmt.Sprintf("%s/v2/locations", a.address)
 	query := url.Values{
 		"proximity": []string{
-			fmt.Sprintf("%f,%f", req.Location.Lat, req.Location.Lng),
+			fmt.Sprintf("%f,%f", req.Location.Lat, req.Location.Long),
 		},
 		"proximity_square": []string{
 			fmt.Sprintf("%f", req.Proximity),

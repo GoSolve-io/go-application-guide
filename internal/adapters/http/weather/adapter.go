@@ -65,7 +65,7 @@ func (a *Adapter) fetchLocationID(ctx context.Context, loc app.Location) (int, e
 	query := url.Values{
 		"lattlong": []string{
 			fmt.Sprintf("%f", loc.Lat),
-			fmt.Sprintf("%f", loc.Lng),
+			fmt.Sprintf("%f", loc.Long),
 		},
 	}
 

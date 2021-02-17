@@ -31,7 +31,7 @@ func (r DiscountRequest) Validate() error {
 		return fmt.Errorf("invalid customer data: %w", err)
 	}
 
-	if r.Location.Lat == 0 || r.Location.Lng == 0 {
+	if r.Location.Lat == 0 || r.Location.Long == 0 {
 		return NewValidationError("invalid location")
 	}
 

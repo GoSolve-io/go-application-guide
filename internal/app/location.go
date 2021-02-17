@@ -4,13 +4,13 @@ import "fmt"
 
 // Location represents physical location coordinates.
 type Location struct {
-	Lat float64
-	Lng float64
+	Lat  float64
+	Long float64
 }
 
 // Validate validates location attributes.
 func (l *Location) Validate() error {
-	if l.Lat == 0 || l.Lng == 0 {
+	if l.Lat == 0 || l.Long == 0 {
 		return NewValidationError("invalid coordinates")
 	}
 	return nil
@@ -18,5 +18,5 @@ func (l *Location) Validate() error {
 
 // String returns string representation of location.
 func (l *Location) String() string {
-	return fmt.Sprintf("lat:%f lng:%f", l.Lat, l.Lng)
+	return fmt.Sprintf("lat:%f long:%f", l.Lat, l.Long)
 }
