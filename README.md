@@ -61,6 +61,7 @@ The topic of the project is a **Bike rental service backend**.
          2. Conclusion: one log should contain all the information about an event
             1. Don't log like: "function started", "function ended". Result aggregated from all running instances will be useless. 
       2. Standard error logging
+         1. https://blog.golang.org/go1.13-errors
       3. Other logs
          1. What to log? (Actually more importantly what not to log)
             1. Incoming requests
@@ -77,6 +78,7 @@ The topic of the project is a **Bike rental service backend**.
 7. Other high level concepts of go programming
    1. Style, linters. Optimize for reading, not for writing.
    2. Error handling
+      1. https://blog.golang.org/go1.13-errors
    3. Context
       1. Primarily for signalling end of execution to goroutines
    4. Overusing language features

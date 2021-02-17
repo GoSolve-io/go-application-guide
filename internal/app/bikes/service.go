@@ -26,11 +26,20 @@ func NewService(bikeRepo Repository) (*Service, error) {
 
 // List returns all possible bikes.
 func (s *Service) List(ctx context.Context) ([]app.Bike, error) {
-	bikes, err := s.repository.List(ctx)
+	bs, err := s.repository.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetching bikes from reposiytory: %w", err)
 	}
-	return bikes, nil
+	return bs, nil
+}
+
+// Get returns a bike by id.
+func (s *Service) Get(ctx context.Context, id string) (*app.Bike, error) {
+	b, err := s.repository.Get(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("fetching bike from reposiytory: %w", err)
+	}
+	return b, nil
 }
 
 // Add adds a new bike.
@@ -63,7 +72,7 @@ func (s *Service) Update(ctx context.Context, id string, b app.Bike) error {
 		return fmt.Errorf("fetching bike by id from repository: %w", err)
 	}
 	if exb == nil {
-		return app.NewNotFoundError("bike not found")
+		return app.ErrNotFound
 	}
 
 	if err := s.repository.Update(ctx, id, b); err != nil {

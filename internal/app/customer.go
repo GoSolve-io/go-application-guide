@@ -18,6 +18,7 @@ const (
 
 // Customer represents customer renting a bike.
 type Customer struct {
+	ID        string
 	Type      CustomerType
 	FirstName string
 	Surname   string
@@ -41,9 +42,9 @@ func (c Customer) Validate() error {
 	// So this is an exception that works only for well defined tasks (like email validation).
 	if c.Email != "" {
 		if err := checkmail.ValidateFormat(c.Email); err != nil {
-			return ValidationError{internalError: internalError{
+			return ValidationError{
 				Err: fmt.Errorf("invalid email address: %w", err),
-			}}
+			}
 		}
 	}
 

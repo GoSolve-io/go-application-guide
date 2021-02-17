@@ -1,6 +1,8 @@
 package reservations
 
 import (
+	"context"
+
 	"github.com/nglogic/go-example-project/internal/app"
 )
 
@@ -8,5 +10,5 @@ import (
 type Repository interface {
 	// CreateReservation creates new reservation for a bike.
 	// If any reservation for this bike exists within given time range, will return app.ConflictError.
-	CreateReservation(app.Reservation) error
+	CreateReservation(context.Context, app.Reservation) error
 }

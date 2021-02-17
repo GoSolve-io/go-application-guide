@@ -79,7 +79,7 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 	}
 
 	// We expect repository to return app.ConflictError if reservation for that bike in that time range already exists.
-	err = s.reservationsRepo.CreateReservation(reservation)
+	err = s.reservationsRepo.CreateReservation(ctx, reservation)
 	if err != nil {
 		if app.IsConflictError(err) {
 			return &app.ReservationResponse{
