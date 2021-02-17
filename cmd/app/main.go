@@ -91,8 +91,8 @@ func runHTTPServer(
 	s := http.Server{
 		Addr:              addr,
 		Handler:           mux,
-		ReadTimeout:       10 * time.Second,
-		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		ReadHeaderTimeout: 3 * time.Second,
 		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       30 * time.Second,
 	}
