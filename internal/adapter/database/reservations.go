@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
@@ -46,8 +47,12 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 	}
 	reservation.Bike = *bike
 
-	if err := r.checkAvailability(ctx, tx, reservation); err != nil {
-		return nil, fmt.Errorf("bike not available: %w", err)
+	available, err := r.checkAvailability(ctx, tx, reservation.Bike.ID, reservation.StartTime, reservation.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("checking bike availability: %w", err)
+	}
+	if !available {
+		return nil, app.NewConflictError("bike not available")
 	}
 
 	if reservation.Customer.ID != "" {
@@ -71,6 +76,47 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 	}
 
 	return &reservation, nil
+}
+
+// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
+func (r *ReservationsRepository) GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return false, fmt.Errorf("creating postgresql transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	return r.checkAvailability(ctx, tx, bikeID, startTime, endTime)
+}
+
+func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx.Tx, bikeID string, startTime, endTime time.Time) (bool, error) {
+	var count int
+	rows, err := tx.NamedQuery(
+		`SELECT count(*) from reservations WHERE 
+			bike_id = :bike_id
+			AND start_time < :end_time
+			AND end_time > :start_time
+		`,
+		map[string]interface{}{
+			"bike_id":    bikeID,
+			"start_time": startTime,
+			"end_time":   endTime,
+		},
+	)
+	if err != nil {
+		return false, fmt.Errorf("querying for conflicting reservations in postgresql: %w", err)
+	}
+	rows.Next()
+	if err := rows.Scan(&count); err != nil {
+		return false, fmt.Errorf("scanning postgresql query result: %w", err)
+	}
+
+	if count > 0 {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (r *ReservationsRepository) checkReservationData(reservation app.Reservation) error {
@@ -102,35 +148,12 @@ func (r *ReservationsRepository) checkCustomerExists(ctx context.Context, tx *sq
 	return nil
 }
 
-func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx.Tx, reservation app.Reservation) error {
-	var count int
-	m := newReservationModel(reservation)
-	err := tx.GetContext(
-		ctx,
-		&count,
-		`SELECT count(*) from reservations WHERE 
-			bike_id = :bike_id
-			AND from < :to
-			AND to > :from
-		`,
-		m,
-	)
-	if err != nil {
-		return fmt.Errorf("querying for conflicting reservations in postgresql: %w", err)
-	}
-
-	if count > 0 {
-		return app.ErrConflict
-	}
-	return nil
-}
-
 func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx.Tx, reservation app.Reservation) error {
 	m := newReservationModel(reservation)
 	_, err := r.db.NamedExecContext(
 		ctx,
-		`insert into reservations (id, bike_id, customer_id, from, to)
-		values (:id, :bike_id, :customer_id, :from, :to)`,
+		`insert into reservations (id, bike_id, customer_id, start_time, end_time)
+		values (:id, :bike_id, :customer_id, :start_time, :end_time)`,
 		m,
 	)
 	if err != nil {
@@ -140,11 +163,11 @@ func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx
 }
 
 type reservationModel struct {
-	ID         string `db:"id"`
-	BikeID     string `db:"bike_id"`
-	CustomerID string `db:"customer_id"`
-	From       string `db:"from"`
-	To         string `db:"to"`
+	ID         string    `db:"id"`
+	BikeID     string    `db:"bike_id"`
+	CustomerID string    `db:"customer_id"`
+	StartTime  time.Time `db:"start_time"`
+	EndTime    time.Time `db:"end_time"`
 }
 
 func newReservationModel(ar app.Reservation) reservationModel {
@@ -152,7 +175,7 @@ func newReservationModel(ar app.Reservation) reservationModel {
 		ID:         ar.ID,
 		BikeID:     ar.Bike.ID,
 		CustomerID: ar.Customer.ID,
-		From:       ar.From.String(),
-		To:         ar.To.String(),
+		StartTime:  ar.StartTime,
+		EndTime:    ar.EndTime,
 	}
 }

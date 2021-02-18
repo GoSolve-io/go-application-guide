@@ -6,11 +6,12 @@ import "errors"
 var (
 	// ErrNotFound represents all kind of problems resulting from not finding something.
 	ErrNotFound = errors.New("not found")
-
-	// ErrConflict represents all kind of problems resulting from conflicting state.
-	// For example - something was supposed to be created but it already exists.
-	ErrConflict = errors.New("conflict")
 )
+
+// IsNotFoundError returns true if err has NotFoundError in it's chain.
+func IsNotFoundError(err error) bool {
+	return errors.Is(err, ErrNotFound)
+}
 
 // ValidationError represents all kind of invalid data errors.
 type ValidationError struct {
@@ -32,12 +33,23 @@ func IsValidationError(err error) bool {
 	return errors.As(err, &ValidationError{})
 }
 
-// IsNotFoundError returns true if err has NotFoundError in it's chain.
-func IsNotFoundError(err error) bool {
-	return errors.Is(err, ErrNotFound)
+// ConflictError represents all kind of problems resulting from conflicting state.
+// For example - something was supposed to be created but it already exists.
+type ConflictError struct {
+	Err error
+}
+
+// NewConflictError creates new ConflictError instance.
+func NewConflictError(message string) error {
+	return ConflictError{Err: errors.New(message)}
+}
+
+// Error fullfills error interface.
+func (e ConflictError) Error() string {
+	return e.Err.Error()
 }
 
 // IsConflictError returns true if err has ConflictError in it's chain.
 func IsConflictError(err error) bool {
-	return errors.Is(err, ErrConflict)
+	return errors.As(err, &ValidationError{})
 }

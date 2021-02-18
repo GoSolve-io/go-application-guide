@@ -17,11 +17,11 @@ const (
 
 // Reservation represents reservation for a bike.
 type Reservation struct {
-	ID       string
-	Customer Customer
-	Bike     Bike
-	From     time.Time
-	To       time.Time
+	ID        string
+	Customer  Customer
+	Bike      Bike
+	StartTime time.Time
+	EndTime   time.Time
 	// TotalValue is in euros, we won't deal with currencies in decimals here for simplicity.
 	TotalValue float64
 }
@@ -38,15 +38,16 @@ func (r Reservation) Validate() error {
 // ReservationService provies methods for making reservations.
 type ReservationService interface {
 	MakeReservation(context.Context, ReservationRequest) (*ReservationResponse, error)
+	GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error)
 }
 
 // ReservationRequest is a request for creating new reservation.
 type ReservationRequest struct {
-	Customer Customer
-	Bike     Bike
-	Location Location
-	From     time.Time
-	To       time.Time
+	Customer  Customer
+	Bike      Bike
+	Location  Location
+	StartTime time.Time
+	EndTime   time.Time
 }
 
 // Validate validates request data.
@@ -61,11 +62,11 @@ func (r *ReservationRequest) Validate() error {
 		return fmt.Errorf("invalid location data: %w", err)
 	}
 
-	if r.From.Before(time.Now()) {
-		return NewValidationError("'from' time can't be in the past")
+	if r.StartTime.Before(time.Now()) {
+		return NewValidationError("start time time can't be in the past")
 	}
-	if r.To.Before(r.From) {
-		return NewValidationError("'to' have to ba after 'from'")
+	if r.EndTime.Before(r.StartTime) {
+		return NewValidationError("end time have to ba after start time")
 	}
 
 	return nil

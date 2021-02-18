@@ -12,19 +12,25 @@ import (
 
 // Server implements rpc ServiceServer.
 type Server struct {
-	bikeService app.BikeService
+	bikeService        app.BikeService
+	reservationService app.ReservationService
 }
 
 // New creates new Server instance.
 func New(
 	bikeService app.BikeService,
+	reservationService app.ReservationService,
 ) (*Server, error) {
 	if bikeService == nil {
 		return nil, errors.New("bike service is nil")
 	}
+	if reservationService == nil {
+		return nil, errors.New("reservation service is nil")
+	}
 
 	return &Server{
-		bikeService: bikeService,
+		bikeService:        bikeService,
+		reservationService: reservationService,
 	}, nil
 }
 
@@ -66,4 +72,21 @@ func (s *Server) DeleteBike(ctx context.Context, req *DeleteBikeRequest) (*empty
 	}
 
 	return &empty.Empty{}, nil
+}
+
+// GetBikeAvailability checks bike availability in given time ranges.
+func (s *Server) GetBikeAvailability(ctx context.Context, req *GetBikeAvailabilityRequest) (*GetBikeAvailabilityResponse, error) {
+	available, err := s.reservationService.GetBikeAvailability(
+		ctx,
+		req.BikeId,
+		req.StartTime.AsTime(),
+		req.EndTime.AsTime(),
+	)
+	if err != nil {
+		return nil, NewGRPCError(err)
+	}
+
+	return &GetBikeAvailabilityResponse{
+		Available: available,
+	}, nil
 }

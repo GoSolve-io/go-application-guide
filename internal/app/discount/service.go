@@ -1,4 +1,4 @@
-package discounts
+package discount
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func NewService(
 }
 
 // CalculateDiscount returns available discount for a bike rental.
-func (s *Service) CalculateDiscount(ctx context.Context, r *app.DiscountRequest) (*app.DiscountResponse, error) {
+func (s *Service) CalculateDiscount(ctx context.Context, r app.DiscountRequest) (*app.DiscountResponse, error) {
 	if err := r.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}

@@ -1,4 +1,4 @@
-package discounts
+package discount
 
 // This file contains all business rules for calculating discounts.
 

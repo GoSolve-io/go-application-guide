@@ -45,7 +45,7 @@ func (r *BikesRepository) Get(ctx context.Context, id string) (*app.Bike, error)
 	err := r.db.GetContext(
 		ctx,
 		&b,
-		`select * from bikes b where id = ?`,
+		`select * from bikes where id = $1`,
 		id,
 	)
 	if err != nil {

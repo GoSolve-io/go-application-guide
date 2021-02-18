@@ -1,7 +1,8 @@
-package reservations
+package reservation
 
 import (
 	"context"
+	"time"
 
 	"github.com/nglogic/go-example-project/internal/app"
 )
@@ -12,4 +13,7 @@ type Repository interface {
 	// If any reservation for this bike exists within given time range, will return app.ConflictError.
 	// Returns created reservation data with filled all ids.
 	CreateReservation(context.Context, app.Reservation) (*app.Reservation, error)
+
+	// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
+	GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error)
 }

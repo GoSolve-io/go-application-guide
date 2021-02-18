@@ -21,8 +21,8 @@ CREATE TABLE customers (
 
 CREATE TABLE reservations (
 	id uuid NOT NULL,
-	"from" timestamptz(0) NOT NULL,
-	"to" timestamptz(0) NOT NULL,
+	"start_time" timestamptz(0) NOT NULL,
+	"end_time" timestamptz(0) NOT NULL,
 	bike_id uuid NOT NULL,
 	customer_id uuid NOT NULL,
 	CONSTRAINT reservations_pk PRIMARY KEY (id),

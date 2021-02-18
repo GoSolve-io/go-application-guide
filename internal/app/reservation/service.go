@@ -1,4 +1,4 @@
-package reservations
+package reservation
 
 import (
 	"context"
@@ -36,6 +36,22 @@ func NewService(discounts app.DiscountService, bikeService app.BikeService, rese
 	}, nil
 }
 
+// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
+func (s *Service) GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error) {
+	if startTime.Before(time.Now()) {
+		return false, app.NewValidationError("start time has to be in future")
+	}
+	if endTime.Before(startTime) {
+		return false, app.NewValidationError("end time has to be after end time")
+	}
+
+	available, err := s.reservationsRepo.GetBikeAvailability(ctx, bikeID, startTime, endTime)
+	if err != nil {
+		return false, fmt.Errorf("checking bike availability in reservation repository: %w", err)
+	}
+	return available, nil
+}
+
 // MakeReservation creates new reservation if possible.
 // If creating reservation is not possible due to business logic or availability issues, this method returns valid response.
 // If there are errors while processing request, returns nil and an error.
@@ -57,7 +73,7 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 		}, nil
 	}
 
-	value := s.calculateReservationValue(*bike, req.From, req.To)
+	value := s.calculateReservationValue(*bike, req.StartTime, req.EndTime)
 
 	discountResp, err := s.discountService.CalculateDiscount(ctx, app.DiscountRequest{
 		Customer:         req.Customer,
@@ -74,8 +90,8 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 		ID:         uuid.New().String(),
 		Customer:   req.Customer,
 		Bike:       req.Bike,
-		From:       req.From,
-		To:         req.To,
+		StartTime:  req.StartTime,
+		EndTime:    req.EndTime,
 		TotalValue: value - discountResp.Discount.Amount,
 	})
 	if err != nil {
