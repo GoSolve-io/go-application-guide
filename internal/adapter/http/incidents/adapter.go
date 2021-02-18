@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nglogic/go-example-project/internal/adapters/http"
+	"github.com/nglogic/go-example-project/internal/adapter/http"
 	"github.com/nglogic/go-example-project/internal/app"
 )
 

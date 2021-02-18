@@ -26,7 +26,7 @@ func (b *Bike) Validate() error {
 type BikeService interface {
 	List(context.Context) ([]Bike, error)
 	Get(ctx context.Context, id string) (*Bike, error)
-	Add(context.Context, Bike) error
+	Add(context.Context, Bike) (*Bike, error)
 	Update(ctx context.Context, id string, b Bike) error
 	Delete(ctx context.Context, id string) error
 }

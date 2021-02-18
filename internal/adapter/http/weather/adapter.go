@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	ahttp "github.com/nglogic/go-example-project/internal/adapters/http"
+	ahttp "github.com/nglogic/go-example-project/internal/adapter/http"
 	"github.com/nglogic/go-example-project/internal/app"
 )
 

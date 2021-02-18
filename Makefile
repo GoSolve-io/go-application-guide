@@ -25,4 +25,4 @@ proto:
 		--proto_path=/app/ \
 		--go_out=plugins=grpc:/app/internal/ \
 		--grpc-gateway_out=logtostderr=true:/app/internal \
-		api/api.proto
+		api/service.proto

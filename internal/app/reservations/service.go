@@ -69,17 +69,15 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 		return nil, fmt.Errorf("checking available discounts: %w", err)
 	}
 
-	reservation := app.Reservation{
+	// We expect repository to return app.ConflictError if reservation for that bike in that time range already exists.
+	reservation, err := s.reservationsRepo.CreateReservation(ctx, app.Reservation{
 		ID:         uuid.New().String(),
 		Customer:   req.Customer,
 		Bike:       req.Bike,
 		From:       req.From,
 		To:         req.To,
 		TotalValue: value - discountResp.Discount.Amount,
-	}
-
-	// We expect repository to return app.ConflictError if reservation for that bike in that time range already exists.
-	err = s.reservationsRepo.CreateReservation(ctx, reservation)
+	})
 	if err != nil {
 		if app.IsConflictError(err) {
 			return &app.ReservationResponse{
@@ -93,7 +91,7 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 
 	return &app.ReservationResponse{
 		Status:                app.ReservationStatusApproved,
-		Reservation:           &reservation,
+		Reservation:           reservation,
 		AppliedDiscountAmount: discountResp.Discount.Amount,
 	}, nil
 }

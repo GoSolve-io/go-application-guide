@@ -6,6 +6,8 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/nglogic/go-example-project/internal/app"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // Server implements rpc ServiceServer.
@@ -36,16 +38,32 @@ func (s *Server) ListBikes(ctx context.Context, _ *empty.Empty) (*ListBikesRespo
 }
 
 // GetBike returns a bike.
-func (s *Server) GetBike(context.Context, *GetBikeRequest) (*Bike, error) {
-	return nil, nil
+func (s *Server) GetBike(ctx context.Context, req *GetBikeRequest) (*Bike, error) {
+	b, err := s.bikeService.Get(ctx, req.Id)
+	if err != nil {
+		return nil, NewGRPCError(err)
+	}
+	return newResponseBike(b), nil
 }
 
 // CreateBike creates new bike.
-func (s *Server) CreateBike(context.Context, *CreateBikeRequest) (*Bike, error) {
-	return nil, nil
+func (s *Server) CreateBike(ctx context.Context, req *CreateBikeRequest) (*Bike, error) {
+	if req.Bike == nil {
+		return nil, status.Error(codes.InvalidArgument, "bike can't be empty")
+	}
+	b := newAppBikeFromRequest(req.Bike)
+	createdBike, err := s.bikeService.Add(ctx, *b)
+	if err != nil {
+		return nil, NewGRPCError(err)
+	}
+	return newResponseBike(createdBike), nil
 }
 
 // DeleteBike deletes a bike.
-func (s *Server) DeleteBike(context.Context, *DeleteBikeRequest) (*empty.Empty, error) {
-	return nil, nil
+func (s *Server) DeleteBike(ctx context.Context, req *DeleteBikeRequest) (*empty.Empty, error) {
+	if err := s.bikeService.Delete(ctx, req.Id); err != nil {
+		return nil, NewGRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
 }

@@ -34,17 +34,25 @@ func (a *Adapter) Close() {
 	a.db.Close()
 }
 
-// Bikes returns adapter for app.bikes.repository.
-func (a *Adapter) Bikes() *BikesAdapter {
-	return &BikesAdapter{
+// Bikes returns bikes repository.
+func (a *Adapter) Bikes() *BikesRepository {
+	return &BikesRepository{
 		db: a.db,
 	}
 }
 
-// Reservations returns adapter for app.reservations.repository.
-func (a *Adapter) Reservations() *ReservationsAdapter {
-	return &ReservationsAdapter{
-		db:  a.db,
-		log: a.log.WithField("adapter", "db.reservations"),
+// Reservations returns reservations repository.
+func (a *Adapter) Reservations() *ReservationsRepository {
+	return &ReservationsRepository{
+		parent: a,
+		db:     a.db,
+		log:    a.log.WithField("repository", "db.reservations"),
+	}
+}
+
+// Customers returns customers repository.
+func (a *Adapter) Customers() *CustomersRepository {
+	return &CustomersRepository{
+		db: a.db,
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/nglogic/go-example-project/internal/app"
 )
 
@@ -43,19 +42,22 @@ func (s *Service) Get(ctx context.Context, id string) (*app.Bike, error) {
 }
 
 // Add adds a new bike.
-func (s *Service) Add(ctx context.Context, b app.Bike) error {
+// Returns added bike with new id.
+func (s *Service) Add(ctx context.Context, b app.Bike) (*app.Bike, error) {
 	if b.ID != "" {
-		return app.NewValidationError("can't add new bike with not empty id")
+		return nil, app.NewValidationError("can't add new bike with not empty id")
 	}
 	if err := b.Validate(); err != nil {
-		return fmt.Errorf("invalid bike data: %w", err)
+		return nil, fmt.Errorf("invalid bike data: %w", err)
 	}
 
-	b.ID = uuid.New().String()
-	if err := s.repository.Add(ctx, b); err != nil {
-		return fmt.Errorf("adding bike to repository: %w", err)
+	id, err := s.repository.Add(ctx, b)
+	if err != nil {
+		return nil, fmt.Errorf("adding bike to repository: %w", err)
 	}
-	return nil
+	b.ID = id
+
+	return &b, nil
 }
 
 // Update updates existing bike by id.
