@@ -22,7 +22,9 @@ func RunGRPCServer(
 		return fmt.Errorf("creating net listener: %w", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
+	)
 	RegisterServiceServer(s, srv)
 	go func() {
 		<-ctx.Done()

@@ -37,7 +37,8 @@ func (a *Adapter) Close() {
 // Bikes returns bikes repository.
 func (a *Adapter) Bikes() *BikesRepository {
 	return &BikesRepository{
-		db: a.db,
+		db:  a.db,
+		log: a.log.WithField("repository", "db.bikes"),
 	}
 }
 
@@ -53,6 +54,7 @@ func (a *Adapter) Reservations() *ReservationsRepository {
 // Customers returns customers repository.
 func (a *Adapter) Customers() *CustomersRepository {
 	return &CustomersRepository{
-		db: a.db,
+		db:  a.db,
+		log: a.log.WithField("repository", "db.customers"),
 	}
 }

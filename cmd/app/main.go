@@ -53,12 +53,17 @@ func main() {
 		log.Fatalf("creating discount service: %v", err)
 	}
 
-	reservationService, err := reservation.NewService(discountService, bikeService, dbAdapter.Reservations())
+	reservationService, err := reservation.NewService(
+		discountService,
+		bikeService,
+		dbAdapter.Reservations(),
+		dbAdapter.Customers(),
+	)
 	if err != nil {
 		log.Fatalf("creating reservation service: %v", err)
 	}
 
-	srv, err := server.New(bikeService, reservationService)
+	srv, err := server.New(bikeService, reservationService, log)
 	if err != nil {
 		log.Fatalf("creating new server: %v", err)
 	}

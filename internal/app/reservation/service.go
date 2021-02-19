@@ -15,11 +15,17 @@ type Service struct {
 	discountService  app.DiscountService
 	bikeService      app.BikeService
 	reservationsRepo Repository
+	customersRepo    CustomerRepository
 }
 
 // NewService creates new service instance.
-func NewService(discounts app.DiscountService, bikeService app.BikeService, reservationsRepo Repository) (*Service, error) {
-	if discounts == nil {
+func NewService(
+	discountService app.DiscountService,
+	bikeService app.BikeService,
+	reservationsRepo Repository,
+	customersRepo CustomerRepository,
+) (*Service, error) {
+	if discountService == nil {
 		return nil, errors.New("empty discount service")
 	}
 	if bikeService == nil {
@@ -28,11 +34,15 @@ func NewService(discounts app.DiscountService, bikeService app.BikeService, rese
 	if reservationsRepo == nil {
 		return nil, errors.New("empty reservations repository")
 	}
+	if customersRepo == nil {
+		return nil, errors.New("empty customers repository")
+	}
 
 	return &Service{
-		discountService:  discounts,
+		discountService:  discountService,
 		bikeService:      bikeService,
 		reservationsRepo: reservationsRepo,
+		customersRepo:    customersRepo,
 	}, nil
 }
 
@@ -62,21 +72,28 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 
 	// We don't trust bike pricing from request,
 	// so we fetch real bike data from bike service.
-	bike, err := s.fetchRealBike(ctx, req.Bike)
+	bike, err := s.fetchRealBike(ctx, req.BikeID)
 	if err != nil {
+		if app.IsNotFoundError(err) {
+			return &app.ReservationResponse{
+				Status: app.ReservationStatusRejected,
+				Reason: fmt.Sprintf("bike with id '%s' does not exists", req.BikeID),
+			}, nil
+		}
 		return nil, err
 	}
-	if bike == nil {
-		return &app.ReservationResponse{
-			Status: app.ReservationStatusRejected,
-			Reason: fmt.Sprintf("bike with id '%s' does not exists", req.Bike.ID),
-		}, nil
+
+	// We don't trust bike pricing from request,
+	// so we fetch real bike data from bike service.
+	customer, err := s.updateCustomerData(ctx, req.Customer)
+	if err != nil {
+		return nil, err
 	}
 
 	value := s.calculateReservationValue(*bike, req.StartTime, req.EndTime)
 
 	discountResp, err := s.discountService.CalculateDiscount(ctx, app.DiscountRequest{
-		Customer:         req.Customer,
+		Customer:         customer,
 		Location:         req.Location,
 		Bike:             *bike,
 		ReservationValue: value,
@@ -87,12 +104,13 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 
 	// We expect repository to return app.ConflictError if reservation for that bike in that time range already exists.
 	reservation, err := s.reservationsRepo.CreateReservation(ctx, app.Reservation{
-		ID:         uuid.New().String(),
-		Customer:   req.Customer,
-		Bike:       req.Bike,
-		StartTime:  req.StartTime,
-		EndTime:    req.EndTime,
-		TotalValue: value - discountResp.Discount.Amount,
+		ID:              uuid.New().String(),
+		Customer:        req.Customer,
+		Bike:            *bike,
+		StartTime:       req.StartTime,
+		EndTime:         req.EndTime,
+		TotalValue:      value - discountResp.Discount.Amount,
+		AppliedDiscount: discountResp.Discount.Amount,
 	})
 	if err != nil {
 		if app.IsConflictError(err) {
@@ -106,22 +124,33 @@ func (s *Service) MakeReservation(ctx context.Context, req app.ReservationReques
 	}
 
 	return &app.ReservationResponse{
-		Status:                app.ReservationStatusApproved,
-		Reservation:           reservation,
-		AppliedDiscountAmount: discountResp.Discount.Amount,
+		Status:      app.ReservationStatusApproved,
+		Reservation: reservation,
 	}, nil
 }
 
-func (s *Service) fetchRealBike(ctx context.Context, bike app.Bike) (*app.Bike, error) {
-	if bike.ID == "" {
+func (s *Service) fetchRealBike(ctx context.Context, bikeID string) (*app.Bike, error) {
+	if bikeID == "" {
 		return nil, errors.New("empty bike id")
 	}
 
-	existingBike, err := s.bikeService.Get(ctx, bike.ID)
+	existingBike, err := s.bikeService.Get(ctx, bikeID)
 	if err != nil {
 		return nil, fmt.Errorf("checking bike in repository: %w", err)
 	}
 	return existingBike, nil
+}
+
+func (s *Service) updateCustomerData(ctx context.Context, customer app.Customer) (app.Customer, error) {
+	if customer.ID == "" {
+		return customer, nil
+	}
+
+	existingCustomer, err := s.customersRepo.Get(ctx, customer.ID)
+	if err != nil {
+		return customer, fmt.Errorf("checking customer in repository: %w", err)
+	}
+	return *existingCustomer, nil
 }
 
 func (s *Service) calculateReservationValue(bike app.Bike, from, to time.Time) float64 {

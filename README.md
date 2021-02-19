@@ -68,7 +68,7 @@ The topic of the project is a **Bike rental service backend**.
             2. Outgoing requests
             3. System state changes
          2. How it relates to app layers
-         3. Put log together into stories using request id
+         3. Put log together into stories using trace id
             1. Later in microservice architecture - distributed transaction id
    2. Caching
       1. App or adapters? App of course and explain why.

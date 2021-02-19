@@ -18,4 +18,4 @@ Ben has a [good post about errors](https://www.gobeyond.dev/failure-is-your-doma
 
 TODO
 
-1. Explain what is in `log.go` in context of passing request id through context. 
+1. Explain what is in `log.go` in context of passing trace id through context. 

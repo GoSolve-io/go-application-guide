@@ -30,7 +30,7 @@ func (c Customer) Validate() error {
 	switch c.Type {
 	case CustomerTypeIndividual, CustomerTypeBuisiness:
 	default:
-		return NewValidationError("invaid customer type")
+		return NewValidationError("invalid customer type")
 	}
 
 	if c.FirstName == "" {

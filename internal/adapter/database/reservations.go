@@ -41,6 +41,12 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 	}
 	defer rollbackTx(ctx, tx, r.log) // This will be noop after successful commit.
 
+	// Constraint checks have to be deffered to the end of the sql tx,
+	// because we might have to create new customer in current transaction.
+	if _, err := tx.ExecContext(ctx, "SET CONSTRAINTS ALL DEFERRED"); err != nil {
+		return nil, fmt.Errorf("setting postgresql transaction constraints: %w", err)
+	}
+
 	bike, err := r.parent.Bikes().Get(ctx, reservation.Bike.ID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid bike: %w", err)
@@ -56,9 +62,11 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 	}
 
 	if reservation.Customer.ID != "" {
-		if err := r.checkCustomerExists(ctx, tx, reservation.Customer.ID); err != nil {
+		customer, err := r.parent.Customers().GetInTx(ctx, tx, reservation.Customer.ID)
+		if err != nil {
 			return nil, fmt.Errorf("invalid customer: %w", err)
 		}
+		reservation.Customer = *customer
 	} else {
 		id, err := r.parent.Customers().AddInTx(ctx, tx, reservation.Customer)
 		if err != nil {
@@ -71,8 +79,8 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 		return nil, fmt.Errorf("creating reservation: %w", err)
 	}
 
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commiting postgres reservation transaction: %w", err)
+	if err := commitTx(ctx, tx, r.log); err != nil {
+		return nil, fmt.Errorf("commiting postgres transaction: %w", err)
 	}
 
 	return &reservation, nil
@@ -108,9 +116,10 @@ func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx
 	if err != nil {
 		return false, fmt.Errorf("querying for conflicting reservations in postgresql: %w", err)
 	}
-	rows.Next()
-	if err := rows.Scan(&count); err != nil {
-		return false, fmt.Errorf("scanning postgresql query result: %w", err)
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			return false, fmt.Errorf("scanning postgresql query result: %w", err)
+		}
 	}
 
 	if count > 0 {
@@ -132,50 +141,44 @@ func (r *ReservationsRepository) checkReservationData(reservation app.Reservatio
 	return nil
 }
 
-func (r *ReservationsRepository) checkCustomerExists(ctx context.Context, tx *sqlx.Tx, id string) error {
-	err := tx.GetContext(
-		ctx,
-		nil,
-		`SELECT id from customers WHERE id=:id`,
-		id,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return app.ErrNotFound
-		}
-		return fmt.Errorf("fetching customer by id from postgresql: %w", err)
-	}
-	return nil
-}
-
 func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx.Tx, reservation app.Reservation) error {
 	m := newReservationModel(reservation)
-	_, err := r.db.NamedExecContext(
-		ctx,
-		`insert into reservations (id, bike_id, customer_id, start_time, end_time)
-		values (:id, :bike_id, :customer_id, :start_time, :end_time)`,
+	_, err := tx.NamedExec(
+		`insert into reservations (id, bike_id, customer_id, start_time, end_time, total_value, applied_discount)
+		values (:id, :bike_id, :customer_id, :start_time, :end_time, :total_value, :applied_discount)`,
 		m,
 	)
 	if err != nil {
 		return fmt.Errorf("inserting reservation row into postgres: %w", err)
 	}
+
+	app.AugmentLogFromCtx(ctx, r.log).
+		WithField("id", m.ID).
+		WithField("bikeId", m.BikeID).
+		WithField("customerId", m.CustomerID).
+		Info("reservation created in db")
+
 	return nil
 }
 
 type reservationModel struct {
-	ID         string    `db:"id"`
-	BikeID     string    `db:"bike_id"`
-	CustomerID string    `db:"customer_id"`
-	StartTime  time.Time `db:"start_time"`
-	EndTime    time.Time `db:"end_time"`
+	ID              string    `db:"id"`
+	BikeID          string    `db:"bike_id"`
+	CustomerID      string    `db:"customer_id"`
+	StartTime       time.Time `db:"start_time"`
+	EndTime         time.Time `db:"end_time"`
+	TotalValue      float64   `db:"total_value"`
+	AppliedDiscount float64   `db:"applied_discount"`
 }
 
 func newReservationModel(ar app.Reservation) reservationModel {
 	return reservationModel{
-		ID:         ar.ID,
-		BikeID:     ar.Bike.ID,
-		CustomerID: ar.Customer.ID,
-		StartTime:  ar.StartTime,
-		EndTime:    ar.EndTime,
+		ID:              ar.ID,
+		BikeID:          ar.Bike.ID,
+		CustomerID:      ar.Customer.ID,
+		StartTime:       ar.StartTime,
+		EndTime:         ar.EndTime,
+		TotalValue:      ar.TotalValue,
+		AppliedDiscount: ar.AppliedDiscount,
 	}
 }

@@ -37,7 +37,7 @@ func RunHTTPServer(
 	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
 	s := http.Server{
 		Addr:              addr,
-		Handler:           mux,
+		Handler:           HTTPHandlerWithTraceID(mux),
 		ReadTimeout:       readTimeout,
 		ReadHeaderTimeout: readHeaderTimeout,
 		WriteTimeout:      writeTimeout,

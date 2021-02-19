@@ -16,14 +16,19 @@ const (
 )
 
 // Reservation represents reservation for a bike.
+// Values are in fixed currency, we won't deal with currencies in decimals here for simplicity.
 type Reservation struct {
 	ID        string
 	Customer  Customer
 	Bike      Bike
 	StartTime time.Time
 	EndTime   time.Time
-	// TotalValue is in euros, we won't deal with currencies in decimals here for simplicity.
+
+	// TotalValue is a total amount to pay by the customer.
 	TotalValue float64
+
+	// AppliedDiscount is amount of discount applied to total reservation value.
+	AppliedDiscount float64
 }
 
 // Validate validates reservation data.
@@ -43,8 +48,8 @@ type ReservationService interface {
 
 // ReservationRequest is a request for creating new reservation.
 type ReservationRequest struct {
+	BikeID    string
 	Customer  Customer
-	Bike      Bike
 	Location  Location
 	StartTime time.Time
 	EndTime   time.Time
@@ -52,11 +57,13 @@ type ReservationRequest struct {
 
 // Validate validates request data.
 func (r *ReservationRequest) Validate() error {
-	if err := r.Customer.Validate(); err != nil {
-		return fmt.Errorf("invalid customer data: %w", err)
+	if r.BikeID == "" {
+		return NewValidationError("bike id is empty")
 	}
-	if err := r.Bike.Validate(); err != nil {
-		return fmt.Errorf("invalid bike data: %w", err)
+	if r.Customer.ID == "" {
+		if err := r.Customer.Validate(); err != nil {
+			return fmt.Errorf("invalid customer data: %w", err)
+		}
 	}
 	if err := r.Location.Validate(); err != nil {
 		return fmt.Errorf("invalid location data: %w", err)
@@ -76,13 +83,11 @@ func (r *ReservationRequest) Validate() error {
 // If status is other than "approved", `Reservation` attribute will be nil.
 type ReservationResponse struct {
 	Status ReservationStatus
+
 	// Reason contains reason of responding with given status.
 	// If status is "approved", it should be empty.
 	Reason string
 
 	// Reservation will be empty for statuses other than "approved".
 	Reservation *Reservation
-
-	// AppliedDiscountAmount is amount of discount applied to total reservation value.
-	AppliedDiscountAmount float64
 }

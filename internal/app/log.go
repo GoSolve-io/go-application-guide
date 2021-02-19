@@ -12,13 +12,18 @@ const (
 	ctxLoggerKey ctxLoggerKeyType = iota
 )
 
+const (
+	logTraceIDKey = "traceId"
+)
+
 // AugmentLogFromCtx augments logger with data from context.
 func AugmentLogFromCtx(ctx context.Context, l logrus.FieldLogger) logrus.FieldLogger {
 	data := logDataFromCtx(ctx)
 	for k, v := range data {
 		l = l.WithField(k, v)
 	}
-	return l
+
+	return l.WithField(logTraceIDKey, TraceIDFromCtx(ctx))
 }
 
 // CtxWithLogField adds extra log information to context.

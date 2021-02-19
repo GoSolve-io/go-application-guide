@@ -51,5 +51,5 @@ func (e ConflictError) Error() string {
 
 // IsConflictError returns true if err has ConflictError in it's chain.
 func IsConflictError(err error) bool {
-	return errors.As(err, &ValidationError{})
+	return errors.As(err, &ConflictError{})
 }

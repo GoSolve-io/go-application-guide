@@ -9,6 +9,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.2.0
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.9.0
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/sirupsen/logrus v1.7.1
 	google.golang.org/genproto v0.0.0-20210212180131-e7f2df4ecc2d
 	google.golang.org/grpc v1.35.0

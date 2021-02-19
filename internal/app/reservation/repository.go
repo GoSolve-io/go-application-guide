@@ -17,3 +17,10 @@ type Repository interface {
 	// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
 	GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error)
 }
+
+// CustomerRepository provides methods for reading customer data.
+type CustomerRepository interface {
+	// Get returns customer by id.
+	// Returns app.ErrNotFound if customer doesn't exist.
+	Get(ctx context.Context, id string) (*app.Customer, error)
+}

@@ -9,11 +9,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/sirupsen/logrus"
 )
 
 // BikesRepository manages bikes in db.
 type BikesRepository struct {
-	db *sqlx.DB
+	db  *sqlx.DB
+	log logrus.FieldLogger
 }
 
 // List returns list of all bikes from db sorted by name ascending.
@@ -75,6 +77,8 @@ func (r *BikesRepository) Add(ctx context.Context, b app.Bike) (id string, err e
 		return "", fmt.Errorf("inserting bike row into postgres: %w", err)
 	}
 
+	app.AugmentLogFromCtx(ctx, r.log).WithField("id", b.ID).Info("bike created in db")
+
 	return b.ID, nil
 }
 
@@ -101,6 +105,8 @@ func (r *BikesRepository) Update(ctx context.Context, id string, b app.Bike) err
 		return app.ErrNotFound
 	}
 
+	app.AugmentLogFromCtx(ctx, r.log).WithField("id", id).Info("bike updated in db")
+
 	return nil
 }
 
@@ -110,9 +116,9 @@ func (r *BikesRepository) Delete(ctx context.Context, id string) error {
 		return errors.New("id is empty")
 	}
 
-	res, err := r.db.NamedExecContext(
+	res, err := r.db.ExecContext(
 		ctx,
-		`delete from bikes where id=:id`,
+		`delete from bikes where id=$1`,
 		id,
 	)
 	if err != nil {
@@ -122,6 +128,8 @@ func (r *BikesRepository) Delete(ctx context.Context, id string) error {
 	if rows == 0 {
 		return app.ErrNotFound
 	}
+
+	app.AugmentLogFromCtx(ctx, r.log).WithField("id", id).Info("bike deleted from db")
 
 	return nil
 }

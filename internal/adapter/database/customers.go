@@ -9,24 +9,27 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/sirupsen/logrus"
 )
 
 // CustomersRepository manages customers in db.
 type CustomersRepository struct {
-	db *sqlx.DB
+	db  *sqlx.DB
+	log logrus.FieldLogger
 }
 
-// Get returns a customer by id. If it doesn't exists, returns app.ErrNotFound error.
-func (r *CustomersRepository) Get(ctx context.Context, id string) (*app.Customer, error) {
+// GetInTx returns a customer by id using existing transaction.
+// If customer doesn't exists, returns app.ErrNotFound error.
+func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id string) (*app.Customer, error) {
 	if id == "" {
 		return nil, errors.New("id is empty")
 	}
 
 	var m customerModel
-	err := r.db.GetContext(
+	err := tx.GetContext(
 		ctx,
 		&m,
-		`select * from customers where id = ?`,
+		`select * from customers where id = $1`,
 		id,
 	)
 	if err != nil {
@@ -38,6 +41,19 @@ func (r *CustomersRepository) Get(ctx context.Context, id string) (*app.Customer
 
 	result := m.ToAppCustomer()
 	return &result, nil
+}
+
+// Get returns a customer by id. If it doesn't exists, returns app.ErrNotFound error.
+func (r *CustomersRepository) Get(ctx context.Context, id string) (*app.Customer, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating postgresql transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	return r.GetInTx(ctx, tx, id)
 }
 
 // AddInTx creates new customer in db using existing db transaction.
@@ -55,6 +71,8 @@ func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c app.Cu
 	if err != nil {
 		return "", fmt.Errorf("inserting customer row into postgres: %w", err)
 	}
+
+	app.AugmentLogFromCtx(ctx, r.log).WithField("id", c.ID).Info("customer created in db")
 
 	return c.ID, nil
 }

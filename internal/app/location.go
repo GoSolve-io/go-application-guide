@@ -11,7 +11,7 @@ type Location struct {
 // Validate validates location attributes.
 func (l *Location) Validate() error {
 	if l.Lat == 0 || l.Long == 0 {
-		return NewValidationError("invalid coordinates")
+		return NewValidationError(fmt.Sprintf("invalid coordinates: %f, %f", l.Lat, l.Long))
 	}
 	return nil
 }

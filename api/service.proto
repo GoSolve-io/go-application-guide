@@ -1,11 +1,65 @@
 syntax = "proto3";
 
-package nglogic.example.v1;
+// Bike rental service
+//
+// Service API exposes method for managing bikes and bike rental.
+package nglogic.bikerental.v1;
+
 option go_package = "../internal/server;server";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+
+service Service {
+    // List all bikes.
+    rpc ListBikes(google.protobuf.Empty) returns (ListBikesResponse) {
+        option (google.api.http) = {
+            get: "/bikes"
+        };
+    };
+
+    // Return bike by id.
+    rpc GetBike(GetBikeRequest) returns (Bike) {
+        option (google.api.http) = {
+            get: "/bikes/{id=*}"
+        };
+    };
+
+    // Create new bike.
+    //
+    // Returns created object with new id.
+    rpc CreateBike(CreateBikeRequest) returns (Bike) {
+        option (google.api.http) = {
+            post: "/bikes"
+            body: "bike"
+        };
+    };
+
+    // Delete a bike by id.
+    rpc DeleteBike(DeleteBikeRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/bikes/{id=*}"
+        };
+    };
+
+    // Check if bike is available.
+    rpc GetBikeAvailability(GetBikeAvailabilityRequest) returns (GetBikeAvailabilityResponse) {
+        option (google.api.http) = {
+            get: "/bikes/{bike_id=*}/availability"
+        };
+    };
+
+    // Create reservation.
+    //
+    // Returns created object with new id.
+    rpc CreateReservation(CreateReservationRequest) returns (CreateReservationResponse) {
+        option (google.api.http) = {
+            post: "/bikes/{bike_id=*}/reservation"
+            body: "*"
+        };
+    };
+}
 
 message Bike {
     string id = 1;
@@ -14,34 +68,39 @@ message Bike {
     float pricePerHour = 4;
 }
 
-service Service {
-    rpc ListBikes(google.protobuf.Empty) returns (ListBikesResponse) {
-        option (google.api.http) = {
-            get: "/bikes"
-        };
-    };
-    rpc GetBike(GetBikeRequest) returns (Bike) {
-        option (google.api.http) = {
-            get: "/bikes/{id=*}"
-        };
-    };
-    rpc CreateBike(CreateBikeRequest) returns (Bike) {
-        option (google.api.http) = {
-            post: "/bikes"
-            body: "bike"
-        };
-    };
-    rpc DeleteBike(DeleteBikeRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/bikes/{id=*}"
-        };
-    };
+enum CustomerType {
+    CUSTOMER_TYPE_UNKNOWN = 0;
+    CUSTOMER_TYPE_INDIVIDUAL = 1;
+    CUSTOMER_TYPE_BUSINESS = 2;
+}
 
-    rpc GetBikeAvailability(GetBikeAvailabilityRequest) returns (GetBikeAvailabilityResponse) {
-        option (google.api.http) = {
-            get: "/bikes/{bike_id=*}/availability"
-        };
-    };
+message Customer {
+    string id = 1;
+    CustomerType type = 2;
+    string first_name = 3;
+    string surname = 4;
+    string email = 5;
+}
+
+enum ReservationStatus {
+    RESERVATION_STATUS_UNKNOWN = 0;
+    RESERVATION_STATUS_REJECTED = 1;
+	RESERVATION_STATUS_APPROVED = 2;
+}
+
+message Reservation {
+    string id = 1;
+    Customer customer = 3;
+    Bike bike = 4;
+    google.protobuf.Timestamp start_time = 5;
+    google.protobuf.Timestamp end_time = 6;
+    float totalValue = 7;
+    float appliedDiscount = 8;
+}
+
+message Location {
+    float lat = 1;
+    float long = 2;
 }
 
 message ListBikesResponse {
@@ -68,4 +127,18 @@ message GetBikeAvailabilityRequest {
 
 message GetBikeAvailabilityResponse {
     bool available = 1;
+}
+
+message CreateReservationRequest {
+    string bike_id = 1;
+    Customer customer = 2;
+    Location location = 3;
+    google.protobuf.Timestamp start_time = 4;
+    google.protobuf.Timestamp end_time = 5;
+}
+
+message CreateReservationResponse {
+    Reservation reservation = 1;
+    ReservationStatus status = 2;
+    string reason = 3;
 }
