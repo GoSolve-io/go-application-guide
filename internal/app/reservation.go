@@ -13,12 +13,14 @@ type ReservationStatus string
 const (
 	ReservationStatusRejected ReservationStatus = "rejected"
 	ReservationStatusApproved ReservationStatus = "approved"
+	ReservationStatusCanceled ReservationStatus = "canceled"
 )
 
 // Reservation represents reservation for a bike.
 // Values are in fixed currency, we won't deal with currencies in decimals here for simplicity.
 type Reservation struct {
 	ID        string
+	Status    ReservationStatus
 	Customer  Customer
 	Bike      Bike
 	StartTime time.Time
@@ -42,12 +44,14 @@ func (r Reservation) Validate() error {
 
 // ReservationService provies methods for making reservations.
 type ReservationService interface {
-	MakeReservation(context.Context, ReservationRequest) (*ReservationResponse, error)
 	GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error)
+	ListReservations(ctx context.Context, req ListReservationsRequest) ([]Reservation, error)
+	CreateReservation(ctx context.Context, req CreateReservationRequest) (*ReservationResponse, error)
+	CancelReservation(ctx context.Context, bikeID string, id string) error
 }
 
-// ReservationRequest is a request for creating new reservation.
-type ReservationRequest struct {
+// CreateReservationRequest is a request for creating new reservation.
+type CreateReservationRequest struct {
 	BikeID    string
 	Customer  Customer
 	Location  Location
@@ -56,7 +60,7 @@ type ReservationRequest struct {
 }
 
 // Validate validates request data.
-func (r *ReservationRequest) Validate() error {
+func (r *CreateReservationRequest) Validate() error {
 	if r.BikeID == "" {
 		return NewValidationError("bike id is empty")
 	}
@@ -90,4 +94,31 @@ type ReservationResponse struct {
 
 	// Reservation will be empty for statuses other than "approved".
 	Reservation *Reservation
+}
+
+// ListReservationsRequest is a request for listing reservations.
+type ListReservationsRequest struct {
+	BikeID    string
+	StartTime time.Time
+	EndTime   time.Time
+}
+
+// Validate validates request data.
+func (r *ListReservationsRequest) Validate() error {
+	if r.BikeID == "" {
+		return NewValidationError("bike id can't be empty")
+	}
+
+	// Note: IsZero check doesn't work for empty timestamps created by empty protobuf timestamp.AsTime.
+	if r.StartTime.Unix() == 0 {
+		return NewValidationError("start time can't be empty")
+	}
+	if r.EndTime.Unix() == 0 {
+		return NewValidationError("end time can't be empty")
+	}
+	if r.EndTime.Before(r.StartTime) {
+		return NewValidationError("end time have to ba after start time")
+	}
+
+	return nil
 }

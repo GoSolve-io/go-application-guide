@@ -145,7 +145,59 @@
         ]
       }
     },
-    "/bikes/{bikeId}/reservation": {
+    "/bikes/{bikeId}/reservations": {
+      "get": {
+        "summary": "List reservations.",
+        "description": "Returns list of reservations for a bike.",
+        "operationId": "Service_ListReservations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListReservationsResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bikeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "tags": [
+          "Service"
+        ]
+      },
       "post": {
         "summary": "Create reservation.",
         "description": "Returns created object with new id.",
@@ -186,6 +238,51 @@
             "schema": {
               "$ref": "#/definitions/v1CreateReservationRequest"
             }
+          }
+        ],
+        "tags": [
+          "Service"
+        ]
+      }
+    },
+    "/bikes/{bikeId}/reservations/{id}:cancel": {
+      "post": {
+        "summary": "Cancel reservation.",
+        "operationId": "Service_CancelReservation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bikeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -417,11 +514,25 @@
         }
       }
     },
+    "v1ListReservationsResponse": {
+      "type": "object",
+      "properties": {
+        "reservations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Reservation"
+          }
+        }
+      }
+    },
     "v1Reservation": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ReservationStatus"
         },
         "customer": {
           "$ref": "#/definitions/v1Customer"
@@ -452,7 +563,8 @@
       "enum": [
         "RESERVATION_STATUS_UNKNOWN",
         "RESERVATION_STATUS_REJECTED",
-        "RESERVATION_STATUS_APPROVED"
+        "RESERVATION_STATUS_APPROVED",
+        "RESERVATION_STATUS_CANCELLED"
       ],
       "default": "RESERVATION_STATUS_UNKNOWN"
     }

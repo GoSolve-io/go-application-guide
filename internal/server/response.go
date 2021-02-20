@@ -33,19 +33,9 @@ func newCreateReservationResponse(r *app.ReservationResponse) *CreateReservation
 		return nil
 	}
 
-	var status ReservationStatus
-	switch r.Status {
-	case app.ReservationStatusApproved:
-		status = ReservationStatus_RESERVATION_STATUS_APPROVED
-	case app.ReservationStatusRejected:
-		status = ReservationStatus_RESERVATION_STATUS_REJECTED
-	default:
-		status = ReservationStatus_RESERVATION_STATUS_UNKNOWN
-	}
-
 	return &CreateReservationResponse{
 		Reservation: newResponseReservation(r.Reservation),
-		Status:      status,
+		Status:      newResponseReservationStatus(r.Status),
 		Reason:      r.Reason,
 	}
 }
@@ -56,6 +46,7 @@ func newResponseReservation(r *app.Reservation) *Reservation {
 	}
 	return &Reservation{
 		Id:              r.ID,
+		Status:          newResponseReservationStatus(r.Status),
 		Customer:        newResponseCustomer(&r.Customer),
 		Bike:            newResponseBike(&r.Bike),
 		StartTime:       timestamppb.New(r.StartTime),
@@ -85,4 +76,19 @@ func newResponseCustomer(c *app.Customer) *Customer {
 		Surname:   c.Surname,
 		Email:     c.Email,
 	}
+}
+
+func newResponseReservationStatus(s app.ReservationStatus) ReservationStatus {
+	var status ReservationStatus
+	switch s {
+	case app.ReservationStatusApproved:
+		status = ReservationStatus_RESERVATION_STATUS_APPROVED
+	case app.ReservationStatusRejected:
+		status = ReservationStatus_RESERVATION_STATUS_REJECTED
+	case app.ReservationStatusCanceled:
+		status = ReservationStatus_RESERVATION_STATUS_CANCELLED
+	default:
+		status = ReservationStatus_RESERVATION_STATUS_UNKNOWN
+	}
+	return status
 }

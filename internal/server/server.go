@@ -109,6 +109,27 @@ func (s *Server) GetBikeAvailability(ctx context.Context, req *GetBikeAvailabili
 	}, nil
 }
 
+// ListReservations returns list of reservations for a bike.
+func (s *Server) ListReservations(ctx context.Context, req *ListReservationsRequest) (*ListReservationsResponse, error) {
+	reservations, err := s.reservationService.ListReservations(ctx, app.ListReservationsRequest{
+		BikeID:    req.BikeId,
+		StartTime: req.StartTime.AsTime(),
+		EndTime:   req.EndTime.AsTime(),
+	})
+	if err != nil {
+		s.logError(ctx, err, "ListReservations")
+		return nil, NewGRPCError(err)
+	}
+
+	var outrs []*Reservation
+	for _, v := range reservations {
+		outrs = append(outrs, newResponseReservation(&v))
+	}
+	return &ListReservationsResponse{
+		Reservations: outrs,
+	}, nil
+}
+
 // CreateReservation creates new reservation.
 // Returns created object with new id.
 func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRequest) (*CreateReservationResponse, error) {
@@ -122,7 +143,7 @@ func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRe
 	}
 	location := newAppLocationFromRequest(req.Location)
 
-	resp, err := s.reservationService.MakeReservation(ctx, app.ReservationRequest{
+	resp, err := s.reservationService.CreateReservation(ctx, app.CreateReservationRequest{
 		BikeID:    req.BikeId,
 		Customer:  *customer,
 		Location:  *location,
@@ -134,9 +155,23 @@ func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRe
 		return nil, NewGRPCError(err)
 	}
 
-	s.logInfo(ctx, "CreateReservation", "reservation created: %s", resp.Reservation.ID)
+	if resp.Reservation != nil {
+		s.logInfo(ctx, "CreateReservation", "reservation created: %s", resp.Reservation.ID)
+	} else {
+		s.logInfo(ctx, "CreateReservation", "reservation not created, reason: %s", resp.Reason)
+	}
 
 	return newCreateReservationResponse(resp), nil
+}
+
+// CancelReservation cancels reservation for a bike.
+func (s *Server) CancelReservation(ctx context.Context, req *CancelReservationRequest) (*empty.Empty, error) {
+	if err := s.reservationService.CancelReservation(ctx, req.BikeId, req.Id); err != nil {
+		s.logError(ctx, err, "CancelReservation")
+		return nil, NewGRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
 }
 
 func (s *Server) logError(ctx context.Context, err error, endpoint string) {

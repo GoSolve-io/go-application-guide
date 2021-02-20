@@ -1,4 +1,4 @@
-.PHONY: build run lint proto
+.PHONY: build run lint proto check-golangcilint-bin
 
 USER = $(shell id -u)
 GROUP = $(shell id -g)
@@ -9,9 +9,11 @@ build:
 run:
 	go run ./cmd/app/...
 
-lint:
-	go vet ./...
-	golint ./...
+# For basic lint you can use:
+# go vet ./... && golint ./...
+# For more torough checks, we recommend golangci-lint with default configuration.
+lint: check-golangcilint-bin
+	golangci-lint run ./...
 
 proto:
 	# Prepare docker image with generator.
@@ -29,3 +31,9 @@ proto:
 		--openapiv2_opt logtostderr=true \
 		--openapiv2_opt openapi_configuration=api/service.swagger.config.yaml \
 		api/service.proto
+
+
+check-golangcilint-bin:
+ifeq (, $(shell which golangci-lint))
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.37.1
+endif

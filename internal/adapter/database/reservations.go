@@ -25,6 +25,51 @@ type ReservationsRepository struct {
 	log    logrus.FieldLogger
 }
 
+// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
+func (r *ReservationsRepository) GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return false, fmt.Errorf("creating postgresql transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	return r.checkAvailability(ctx, tx, bikeID, startTime, endTime)
+}
+
+// ListReservations returns list of reservations matching request criteria.
+func (r *ReservationsRepository) ListReservations(ctx context.Context, req app.ListReservationsRequest) ([]app.Reservation, error) {
+	var rs []reservationModel
+	err := r.db.SelectContext(
+		ctx,
+		&rs,
+		`select 
+			r.*, 
+			c.first_name, c.surname, c.email, c.type,
+			b.model_name, b.weight, b.price_per_h
+		from reservations r
+		inner join customers c on r.customer_id = c.id
+		inner join bikes b on r.bike_id = b.id
+		where 
+			r.start_time < $2
+			and r.end_time > $1
+			and r.bike_id = $3`,
+		req.StartTime,
+		req.EndTime,
+		req.BikeID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("querying for reservations in postgresql: %w", err)
+	}
+
+	result := make([]app.Reservation, 0, len(rs))
+	for _, v := range rs {
+		result = append(result, v.ToAppReservation())
+	}
+	return result, nil
+}
+
 // CreateReservation creates new reservation in db.
 // Bike id must be provided.
 // If customer doesn't exists, it is created with reservation.
@@ -86,26 +131,36 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 	return &reservation, nil
 }
 
-// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
-func (r *ReservationsRepository) GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error) {
-	tx, err := r.db.BeginTxx(ctx, nil)
+// CancelReservation sets reservation status to canceled.
+// Returns app.ErrNotFound if reservation doesn't exists.
+func (r *ReservationsRepository) CancelReservation(ctx context.Context, bikeID string, id string) error {
+	res, err := r.db.ExecContext(
+		ctx,
+		`update reservations 
+		set status='canceled'
+		where bike_id=$1 and id=$2`,
+		bikeID,
+		id,
+	)
 	if err != nil {
-		return false, fmt.Errorf("creating postgresql transaction: %w", err)
+		return fmt.Errorf("updating reservation status in postgres: %w", err)
 	}
-	defer func() {
-		_ = tx.Commit()
-	}()
 
-	return r.checkAvailability(ctx, tx, bikeID, startTime, endTime)
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return app.ErrNotFound
+	}
+	return nil
 }
 
 func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx.Tx, bikeID string, startTime, endTime time.Time) (bool, error) {
 	var count int
 	rows, err := tx.NamedQuery(
-		`SELECT count(*) from reservations WHERE 
+		`select count(*) from reservations WHERE 
 			bike_id = :bike_id
-			AND start_time < :end_time
-			AND end_time > :start_time
+			and start_time < :end_time
+			and end_time > :start_time
+			and status != 'canceled'
 		`,
 		map[string]interface{}{
 			"bike_id":    bikeID,
@@ -144,8 +199,8 @@ func (r *ReservationsRepository) checkReservationData(reservation app.Reservatio
 func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx.Tx, reservation app.Reservation) error {
 	m := newReservationModel(reservation)
 	_, err := tx.NamedExec(
-		`insert into reservations (id, bike_id, customer_id, start_time, end_time, total_value, applied_discount)
-		values (:id, :bike_id, :customer_id, :start_time, :end_time, :total_value, :applied_discount)`,
+		`insert into reservations (id, status, bike_id, customer_id, start_time, end_time, total_value, applied_discount)
+		values (:id, :status, :bike_id, :customer_id, :start_time, :end_time, :total_value, :applied_discount)`,
 		m,
 	)
 	if err != nil {
@@ -163,22 +218,61 @@ func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx
 
 type reservationModel struct {
 	ID              string    `db:"id"`
+	Status          string    `db:"status"`
 	BikeID          string    `db:"bike_id"`
 	CustomerID      string    `db:"customer_id"`
 	StartTime       time.Time `db:"start_time"`
 	EndTime         time.Time `db:"end_time"`
 	TotalValue      float64   `db:"total_value"`
 	AppliedDiscount float64   `db:"applied_discount"`
+
+	// Join on customers
+	FirstName string `db:"first_name"`
+	Surname   string `db:"surname"`
+	Email     string `db:"email"`
+	Type      string `db:"type"`
+
+	// Join on bikes
+	ModelName    string  `db:"model_name"`
+	Weight       float64 `db:"weight"`
+	PricePerHour float64 `db:"price_per_h"`
 }
 
 func newReservationModel(ar app.Reservation) reservationModel {
 	return reservationModel{
 		ID:              ar.ID,
+		Status:          string(ar.Status),
 		BikeID:          ar.Bike.ID,
 		CustomerID:      ar.Customer.ID,
 		StartTime:       ar.StartTime,
 		EndTime:         ar.EndTime,
 		TotalValue:      ar.TotalValue,
 		AppliedDiscount: ar.AppliedDiscount,
+	}
+}
+
+func (m *reservationModel) ToAppReservation() app.Reservation {
+	cm := customerModel{
+		ID:        m.CustomerID,
+		Type:      m.Type,
+		FirstName: m.FirstName,
+		Surname:   m.Surname,
+		Email:     m.Email,
+	}
+	bm := bikeModel{
+		ID:           m.BikeID,
+		ModelName:    m.ModelName,
+		Weight:       m.Weight,
+		PricePerHour: m.PricePerHour,
+	}
+	return app.Reservation{
+		ID:              m.ID,
+		Status:          app.ReservationStatus(m.Status),
+		Customer:        cm.ToAppCustomer(),
+		Bike:            bm.ToAppBike(),
+		StartTime:       m.StartTime,
+		EndTime:         m.EndTime,
+		TotalValue:      m.TotalValue,
+		AppliedDiscount: m.AppliedDiscount,
 	}
 }

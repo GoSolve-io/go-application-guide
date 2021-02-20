@@ -50,13 +50,29 @@ service Service {
         };
     };
 
+    // List reservations.
+    //
+    // Returns list of reservations for a bike.
+    rpc ListReservations(ListReservationsRequest) returns (ListReservationsResponse) {
+        option (google.api.http) = {
+            get: "/bikes/{bike_id=*}/reservations"
+        };
+    };
+
     // Create reservation.
     //
     // Returns created object with new id.
     rpc CreateReservation(CreateReservationRequest) returns (CreateReservationResponse) {
         option (google.api.http) = {
-            post: "/bikes/{bike_id=*}/reservation"
+            post: "/bikes/{bike_id=*}/reservations"
             body: "*"
+        };
+    };
+
+    // Cancel reservation.
+    rpc CancelReservation(CancelReservationRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/bikes/{bike_id=*}/reservations/{id=*}:cancel"
         };
     };
 }
@@ -86,10 +102,12 @@ enum ReservationStatus {
     RESERVATION_STATUS_UNKNOWN = 0;
     RESERVATION_STATUS_REJECTED = 1;
 	RESERVATION_STATUS_APPROVED = 2;
+    RESERVATION_STATUS_CANCELLED = 3;
 }
 
 message Reservation {
     string id = 1;
+    ReservationStatus status = 2;
     Customer customer = 3;
     Bike bike = 4;
     google.protobuf.Timestamp start_time = 5;
@@ -141,4 +159,19 @@ message CreateReservationResponse {
     Reservation reservation = 1;
     ReservationStatus status = 2;
     string reason = 3;
+}
+
+message ListReservationsRequest {
+    string bike_id = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+}
+
+message ListReservationsResponse {
+    repeated Reservation reservations = 1;
+}
+
+message CancelReservationRequest {
+    string id = 1;
+    string bike_id = 2;
 }
