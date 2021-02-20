@@ -1,4 +1,4 @@
-# Go developers incomplete guide to writing typical backend service
+# Go developers incomplete guide to writing typical backend service ![Build](https://github.com/nglogic/go-example-project/workflows/Build/badge.svg)
 
 This repository contains example of fully working application. App exposes GRPC and REST APIs, that implements some imaginary business requirements.
 
