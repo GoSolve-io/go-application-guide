@@ -1,4 +1,4 @@
-package server
+package grpc
 
 import (
 	"github.com/nglogic/go-example-project/internal/app"

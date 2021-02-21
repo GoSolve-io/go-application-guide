@@ -2,11 +2,11 @@
 // source: service.proto
 
 /*
-Package server is a reverse proxy.
+Package grpc is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package server
+package grpc
 
 import (
 	"context"

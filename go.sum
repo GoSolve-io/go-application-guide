@@ -36,6 +36,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/badoux/checkmail v1.2.1 h1:TzwYx5pnsV6anJweMx2auXdekBwGr/yt1GgalIx9nBQ=
 github.com/badoux/checkmail v1.2.1/go.mod h1:XroCOBU5zzZJcLvgwU15I+2xXyCdTWXyR9MGfRhBYy0=
+github.com/caarlos0/env/v6 v6.5.0 h1:f4C7ZQwm0nRFo8vETCQviLUOtOlOwsOhgc/QXp0zrTM=
+github.com/caarlos0/env/v6 v6.5.0/go.mod h1:5ZqhjfyF261xGkANuSuMQ1FeA9ikA3wzDY64wSd9k8k=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=

@@ -8,7 +8,7 @@ var (
 	ErrNotFound = errors.New("not found")
 )
 
-// IsNotFoundError returns true if err has NotFoundError in it's chain.
+// IsNotFoundError returns true if err has NotFoundError in its chain.
 func IsNotFoundError(err error) bool {
 	return errors.Is(err, ErrNotFound)
 }
@@ -28,7 +28,7 @@ func (e ValidationError) Error() string {
 	return e.Err.Error()
 }
 
-// IsValidationError returns true if err has ValidationError in it's chain.
+// IsValidationError returns true if err has ValidationError in its chain.
 func IsValidationError(err error) bool {
 	return errors.As(err, &ValidationError{})
 }
@@ -49,7 +49,7 @@ func (e ConflictError) Error() string {
 	return e.Err.Error()
 }
 
-// IsConflictError returns true if err has ConflictError in it's chain.
+// IsConflictError returns true if err has ConflictError in its chain.
 func IsConflictError(err error) bool {
 	return errors.As(err, &ConflictError{})
 }

@@ -1,4 +1,4 @@
-package server
+package grpc
 
 import (
 	"github.com/nglogic/go-example-project/internal/app"
@@ -6,8 +6,8 @@ import (
 	status "google.golang.org/grpc/status"
 )
 
-// NewGRPCError creates error for grp response.
-func NewGRPCError(err error) error {
+// NewServerError creates error for server response.
+func NewServerError(err error) error {
 	if err == nil {
 		return nil
 	}

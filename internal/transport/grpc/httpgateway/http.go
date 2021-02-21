@@ -1,4 +1,4 @@
-package server
+package httpgateway
 
 import (
 	context "context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/nglogic/go-example-project/internal/transport/grpc"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,26 +19,28 @@ const (
 	idleTimeout       = 30 * time.Second
 )
 
-// RunHTTPServer starts http server with grpc gateway for ServiceServer.
+// RunServer starts http server with grpc gateway for ServiceServer.
 // Server is gracefully shut down on context cancellation.
-func RunHTTPServer(
+func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
-	srv ServiceServer,
+	srv grpc.ServiceServer,
 	addr string,
 ) error {
 	mux := runtime.NewServeMux()
-
-	err := RegisterServiceHandlerServer(ctx, mux, srv)
-	if err != nil {
+	if err := grpc.RegisterServiceHandlerServer(ctx, mux, srv); err != nil {
 		return fmt.Errorf("registering http handlers for server: %w", err)
 	}
 
-	// See this great explanation on timeouts:
+	var handler http.Handler = mux
+	handler = HandlerWithLogCtx(handler)
+	handler = HandlerWithTraceID(handler)
+
+	// See this great explanation on http timeouts:
 	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
 	s := http.Server{
 		Addr:              addr,
-		Handler:           HTTPHandlerWithTraceID(mux),
+		Handler:           handler,
 		ReadTimeout:       readTimeout,
 		ReadHeaderTimeout: readHeaderTimeout,
 		WriteTimeout:      writeTimeout,

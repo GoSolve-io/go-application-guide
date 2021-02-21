@@ -14,17 +14,30 @@ import (
 	"github.com/nglogic/go-example-project/internal/app/bikes"
 	"github.com/nglogic/go-example-project/internal/app/discount"
 	"github.com/nglogic/go-example-project/internal/app/reservation"
-	"github.com/nglogic/go-example-project/internal/server"
+	"github.com/nglogic/go-example-project/internal/transport/grpc"
+	"github.com/nglogic/go-example-project/internal/transport/grpc/httpgateway"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	maxHTTPClientTimeout = 30 * time.Second
 )
 
 func main() {
 	log := logrus.New()
 
-	dbAdapter, err := database.NewAdapter(
-		"postgres://postgres:password@localhost:5432/example?sslmode=disable",
-		log,
-	)
+	conf, err := newConfig()
+	if err != nil {
+		log.Fatalf("initializing config: %v", err)
+	}
+
+	logLevel, err := logrus.ParseLevel(conf.LogLevel)
+	if err != nil {
+		log.Fatalf("initializing config: %v", err)
+	}
+	log.SetLevel(logLevel)
+
+	dbAdapter, err := database.NewAdapter(conf.PostgresDSN, log)
 	if err != nil {
 		log.Fatalf("creating bike repository: %v", err)
 	}
@@ -35,15 +48,15 @@ func main() {
 	}
 
 	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: maxHTTPClientTimeout,
 	}
 
-	weatherAdapter, err := weather.NewAdapter("https://www.metaweather.com", 10*time.Second, httpClient)
+	weatherAdapter, err := weather.NewAdapter(conf.MetaweatherAddr, conf.MetaweatherTimeout, httpClient)
 	if err != nil {
 		log.Fatalf("creating weather adapter: %v", err)
 	}
 
-	incidentsAdapter, err := incidents.NewAdapter("https://bikewise.org/api", 10*time.Second, httpClient)
+	incidentsAdapter, err := incidents.NewAdapter(conf.BikewiseAddr, conf.BikewiseTimeout, httpClient)
 	if err != nil {
 		log.Fatalf("creating incidents adapter: %v", err)
 	}
@@ -63,7 +76,7 @@ func main() {
 		log.Fatalf("creating reservation service: %v", err)
 	}
 
-	srv, err := server.New(bikeService, reservationService, log)
+	srv, err := grpc.NewServer(bikeService, reservationService, log)
 	if err != nil {
 		log.Fatalf("creating new server: %v", err)
 	}
@@ -82,7 +95,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := server.RunHTTPServer(ctx, log, srv, ":8080")
+		err := httpgateway.RunServer(ctx, log, srv, conf.HTTPServerAddr)
 		cancel()
 		if err != nil {
 			log.Errorf("http server: %v", err)
@@ -92,7 +105,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = server.RunGRPCServer(ctx, log, srv, ":9090")
+		err = grpc.RunServer(ctx, log, srv, conf.GRPCServerAddr)
 		cancel()
 		if err != nil {
 			log.Errorf("grpc server: %v", err)

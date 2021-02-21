@@ -1,4 +1,4 @@
-.PHONY: build run lint proto check-golangcilint-bin
+.PHONY: build run test lint proto check-golangcilint-bin
 
 USER = $(shell id -u)
 GROUP = $(shell id -g)
@@ -8,6 +8,9 @@ build:
 
 run:
 	go run ./cmd/app/...
+
+test:
+	go test -race ./cmd/app/...
 
 # For basic lint you can use:
 # go vet ./... && golint ./...

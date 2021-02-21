@@ -1,13 +1,15 @@
-package server
+package grpc
 
 import (
 	context "context"
 	"errors"
 	"fmt"
+	"net"
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/nglogic/go-example-project/internal/app"
 	"github.com/sirupsen/logrus"
+	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 )
@@ -19,8 +21,8 @@ type Server struct {
 	log                logrus.FieldLogger
 }
 
-// New creates new Server instance.
-func New(
+// NewServer creates new Server instance.
+func NewServer(
 	bikeService app.BikeService,
 	reservationService app.ReservationService,
 	log logrus.FieldLogger,
@@ -47,7 +49,7 @@ func (s *Server) ListBikes(ctx context.Context, _ *empty.Empty) (*ListBikesRespo
 	bikes, err := s.bikeService.List(ctx)
 	if err != nil {
 		s.logError(ctx, err, "ListBikes")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 	return newListBikesResponse(bikes), nil
 }
@@ -57,7 +59,7 @@ func (s *Server) GetBike(ctx context.Context, req *GetBikeRequest) (*Bike, error
 	b, err := s.bikeService.Get(ctx, req.Id)
 	if err != nil {
 		s.logError(ctx, err, "GetBike")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 	return newResponseBike(b), nil
 }
@@ -71,7 +73,7 @@ func (s *Server) CreateBike(ctx context.Context, req *CreateBikeRequest) (*Bike,
 	createdBike, err := s.bikeService.Add(ctx, *b)
 	if err != nil {
 		s.logError(ctx, err, "CreateBike")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 
 	s.logInfo(ctx, "CreateBike", "bike created: %s", createdBike.ID)
@@ -83,7 +85,7 @@ func (s *Server) CreateBike(ctx context.Context, req *CreateBikeRequest) (*Bike,
 func (s *Server) DeleteBike(ctx context.Context, req *DeleteBikeRequest) (*empty.Empty, error) {
 	if err := s.bikeService.Delete(ctx, req.Id); err != nil {
 		s.logError(ctx, err, "DeleteBike")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 
 	s.logInfo(ctx, "DeleteBike", "bike delete ok: %s", req.Id)
@@ -101,7 +103,7 @@ func (s *Server) GetBikeAvailability(ctx context.Context, req *GetBikeAvailabili
 	)
 	if err != nil {
 		s.logError(ctx, err, "GetBikeAvailability")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 
 	return &GetBikeAvailabilityResponse{
@@ -118,7 +120,7 @@ func (s *Server) ListReservations(ctx context.Context, req *ListReservationsRequ
 	})
 	if err != nil {
 		s.logError(ctx, err, "ListReservations")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 
 	var outrs []*Reservation
@@ -152,7 +154,7 @@ func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRe
 	})
 	if err != nil {
 		s.logError(ctx, err, "CreateReservation")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 
 	if resp.Reservation != nil {
@@ -168,7 +170,7 @@ func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRe
 func (s *Server) CancelReservation(ctx context.Context, req *CancelReservationRequest) (*empty.Empty, error) {
 	if err := s.reservationService.CancelReservation(ctx, req.BikeId, req.Id); err != nil {
 		s.logError(ctx, err, "CancelReservation")
-		return nil, NewGRPCError(err)
+		return nil, NewServerError(err)
 	}
 
 	return &empty.Empty{}, nil
@@ -188,4 +190,31 @@ func (s *Server) logInfo(ctx context.Context, endpoint string, format string, ar
 		fmt.Sprintf("handling request for %s: %s", endpoint, format),
 		args...,
 	)
+}
+
+// RunServer starts grpc server with ServiceServer service.
+// Server is gracefully shut down on context cancellation.
+func RunServer(
+	ctx context.Context,
+	log logrus.FieldLogger,
+	srv ServiceServer,
+	addr string,
+) error {
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		return fmt.Errorf("creating net listener: %w", err)
+	}
+
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
+	)
+	RegisterServiceServer(s, srv)
+	go func() {
+		<-ctx.Done()
+		log.Infof("grpc server: shutting down")
+		s.GracefulStop()
+	}()
+
+	log.Infof("grpc server: listening on %s", addr)
+	return s.Serve(l)
 }

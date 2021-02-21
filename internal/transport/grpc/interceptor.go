@@ -1,4 +1,4 @@
-package server
+package grpc
 
 import (
 	context "context"
@@ -12,6 +12,16 @@ import (
 func TraceIDUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		ctx = app.CtxWithTraceID(ctx, uuid.NewString())
+
+		return handler(ctx, req)
+	}
+}
+
+// LogCtxUnaryServerInterceptor returns a new unary server interceptor adding request information to context for logging.
+func LogCtxUnaryServerInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		ctx = app.CtxWithLogField(ctx, "grpc.method", info.FullMethod)
+
 		return handler(ctx, req)
 	}
 }
