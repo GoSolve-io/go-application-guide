@@ -3,7 +3,12 @@
 
 Table of contents
 - [Go developers incomplete guide to writing typical backend service !Build](#go-developers-incomplete-guide-to-writing-typical-backend-service-)
-  - [What is this repository?](#what-is-this-repository)
+  - [Intro](#intro)
+    - [What is this repository?](#what-is-this-repository)
+    - [Why this guide might be useful to you](#why-this-guide-might-be-useful-to-you)
+    - [Guide goal](#guide-goal)
+    - [Will this example application always work for me?](#will-this-example-application-always-work-for-me)
+    - [How to read this repository](#how-to-read-this-repository)
   - [Example project](#example-project)
     - [Business requirements](#business-requirements)
     - [Design](#design)
@@ -29,11 +34,16 @@ Table of contents
     - [Medium abstraction level](#medium-abstraction-level)
     - [Low abstraction level](#low-abstraction-level)
 
-## What is this repository?
+## Intro
 
-This repository contains example of fully working application. App exposes GRPC and REST APIs, that implements some imaginary business requirements.
+### What is this repository?
 
-The topic of the project is a **Bike rental service backend**.
+This repository is kind of guide explaining how to write most common type of backend service in go. The guide consists of 2 complementary parts: 
+
+- A set of documents explaining various aspects of typical go backend service,
+- Fully working codebase, implementing these documents in practice.
+
+The topic of the example project is a **Bike rental service backend**.
 
 The purpose of this project is to:
 
@@ -41,37 +51,52 @@ The purpose of this project is to:
 - Explain some high level concepts of go programming, such as organizing packages, error handling, passing context, etc.
 - Explain how to embrace good design principles in a project, such as clean architecture and SOLID principles. 
 
-TODO
+### Why this guide might be useful to you
 
- 1. How to read this document and the code.
-    1. Readme files in important packages to explain some concepts.
- 2. Problem statement
-    1. Go is great, but there is no single framework forcing the project structure
-    2. Many great articles on software architecture, not many good full guides for typical backend services
-       1. Ben Johnson has similar example project and a list of great blog posts: https://www.gobeyond.dev. Explain what is different here. Anyway this work will be heavily inspired by his work.
-       2. Three Dots Labs has similar project with series of blog posts: https://threedots.tech/. Blog posts are great, and there will be similarities with this work.
-    3. Goals
-       1. Guide for developers coming into go from other languages
-       2. Reusable code structure, that will be familiar across multiple services developed within a company (this is the main difference from Ben Johnson's approach)
-       3. Hints and tips about common problems (logging, caching, metrics, terminating goroutines, etc)
- 3. Benefits of presented code structure
- 4. When presented code structure doesn't apply?
-    1. Libraries (Explanation)
-    2. Very small services (in general, how to collapse packages from this example into "bigger" chunks, up to single `main.go` file)
-    3. Very big services (not enough experience to judge)
-    4. Other kind of services? Any ideas?
+Go is a great language. It's simple, easy to learn and the code is straightforward. You can write simple application in just `main.go`. But when you want to write a bigger project, there isn't any single guide or framework that can tell you exactly how to organize it. All of the project are different. Some of them are great, but usually programmers struggle with this freedom. There are many examples of "transplanting" code pieces from other languages/frameworks into go projects (`models` package!).
+
+There are many great articles on how to write good go code, but there aren't that many sources explaining how to put all the good stuff together. One of the sources we recommend is Ben Johnson's blog: https://www.gobeyond.dev. He also uses repository with example code, and has multiple posts that are really worth reading. But this guide will be a little different. Other good source with series of bog posts is https://threedots.tech - check this as well.
+
+### Guide goal
+
+The goal of this guide is to explain all the important parts of typical go project, and then in that context show how to design and write readable and maintainable code, also explaining some topics specific to go. 
+Later in this guide we'll also explain some problems common to go projects (logging, caching, metrics, terminating goroutines, etc).
+This guide will hopefully be useful for experienced programmers switching from other languages.
+
+The structure of code presented in this repository is designed to be flexible to use in various project. The idea is that you can copy it, replace some application logic, customize adapters (explained later), and then you have new project with familiar structure and (hopefully) good design.  
+
+### Will this example application always work for me?
+
+This project structure is designed for medium to large size applications. It's not a good idea to apply all the concepts and packages for:
+
+1. Libraries
+   Libraries are just different and we won't cover library design in this guide.
+2. Very small applications
+   If you want to write `hello word` service, or you don't care about testing that much, or you want to write simple POC for some quick demo - don't copy this project. Later in this guide you'll find some tips how to collapse some packages from this example to make things simpler.
+3. Very big projects
+   Author just lacks experience to tell how does this guide relate to very big codebases.
+
+### How to read this repository
+
+Start with this README file. Read it up to the chapter explaining example project design. After that point you can:
+
+- browse and run the code,
+- continue reading chapter by chapter...
+- ...or pick any chapter you want - order is not relevant
+
+You will find multiple `readme.md` files in go packages. They contain explanations for some concepts in code. We recommend to check them as well!
 
 ## Example project
 
 ### Business requirements
 
-Requirements are described in separate document.
+Requirements for our example service are described in separate document.
 
 [Business requirements](/docs/businessrequirements/requirements.md)
 
 ### Design
 
-Design for this example project is described in separate document. Please read it first before browsing any code.
+Design for our example project is described in separate document. Please read it first before browsing any code.
 
 [System design documentation](/docs/systemdesign/systemdesign.md)
 
