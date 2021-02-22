@@ -5,7 +5,7 @@ syntax = "proto3";
 // Service API exposes method for managing bikes and bike rental.
 package nglogic.bikerental.v1;
 
-option go_package = "../internal/transport/grpc;grpc";
+option go_package = "github.com/nglogic/go-example-project/pkg/api/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";

@@ -8,6 +8,7 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/nglogic/go-example-project/internal/app"
+	v1 "github.com/nglogic/go-example-project/pkg/api/v1"
 	"github.com/sirupsen/logrus"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -45,7 +46,7 @@ func NewServer(
 }
 
 // ListBikes returns list of all bikes.
-func (s *Server) ListBikes(ctx context.Context, _ *empty.Empty) (*ListBikesResponse, error) {
+func (s *Server) ListBikes(ctx context.Context, _ *empty.Empty) (*v1.ListBikesResponse, error) {
 	bikes, err := s.bikeService.List(ctx)
 	if err != nil {
 		s.logError(ctx, err, "ListBikes")
@@ -55,7 +56,7 @@ func (s *Server) ListBikes(ctx context.Context, _ *empty.Empty) (*ListBikesRespo
 }
 
 // GetBike returns a bike.
-func (s *Server) GetBike(ctx context.Context, req *GetBikeRequest) (*Bike, error) {
+func (s *Server) GetBike(ctx context.Context, req *v1.GetBikeRequest) (*v1.Bike, error) {
 	b, err := s.bikeService.Get(ctx, req.Id)
 	if err != nil {
 		s.logError(ctx, err, "GetBike")
@@ -65,7 +66,7 @@ func (s *Server) GetBike(ctx context.Context, req *GetBikeRequest) (*Bike, error
 }
 
 // CreateBike creates new bike.
-func (s *Server) CreateBike(ctx context.Context, req *CreateBikeRequest) (*Bike, error) {
+func (s *Server) CreateBike(ctx context.Context, req *v1.CreateBikeRequest) (*v1.Bike, error) {
 	if req.Bike == nil {
 		return nil, status.Error(codes.InvalidArgument, "bike can't be empty")
 	}
@@ -82,7 +83,7 @@ func (s *Server) CreateBike(ctx context.Context, req *CreateBikeRequest) (*Bike,
 }
 
 // DeleteBike deletes a bike.
-func (s *Server) DeleteBike(ctx context.Context, req *DeleteBikeRequest) (*empty.Empty, error) {
+func (s *Server) DeleteBike(ctx context.Context, req *v1.DeleteBikeRequest) (*empty.Empty, error) {
 	if err := s.bikeService.Delete(ctx, req.Id); err != nil {
 		s.logError(ctx, err, "DeleteBike")
 		return nil, NewServerError(err)
@@ -94,7 +95,7 @@ func (s *Server) DeleteBike(ctx context.Context, req *DeleteBikeRequest) (*empty
 }
 
 // GetBikeAvailability checks bike availability in given time ranges.
-func (s *Server) GetBikeAvailability(ctx context.Context, req *GetBikeAvailabilityRequest) (*GetBikeAvailabilityResponse, error) {
+func (s *Server) GetBikeAvailability(ctx context.Context, req *v1.GetBikeAvailabilityRequest) (*v1.GetBikeAvailabilityResponse, error) {
 	available, err := s.reservationService.GetBikeAvailability(
 		ctx,
 		req.BikeId,
@@ -106,13 +107,13 @@ func (s *Server) GetBikeAvailability(ctx context.Context, req *GetBikeAvailabili
 		return nil, NewServerError(err)
 	}
 
-	return &GetBikeAvailabilityResponse{
+	return &v1.GetBikeAvailabilityResponse{
 		Available: available,
 	}, nil
 }
 
 // ListReservations returns list of reservations for a bike.
-func (s *Server) ListReservations(ctx context.Context, req *ListReservationsRequest) (*ListReservationsResponse, error) {
+func (s *Server) ListReservations(ctx context.Context, req *v1.ListReservationsRequest) (*v1.ListReservationsResponse, error) {
 	reservations, err := s.reservationService.ListReservations(ctx, app.ListReservationsRequest{
 		BikeID:    req.BikeId,
 		StartTime: req.StartTime.AsTime(),
@@ -123,18 +124,18 @@ func (s *Server) ListReservations(ctx context.Context, req *ListReservationsRequ
 		return nil, NewServerError(err)
 	}
 
-	var outrs []*Reservation
+	var outrs []*v1.Reservation
 	for _, v := range reservations {
 		outrs = append(outrs, newResponseReservation(&v))
 	}
-	return &ListReservationsResponse{
+	return &v1.ListReservationsResponse{
 		Reservations: outrs,
 	}, nil
 }
 
 // CreateReservation creates new reservation.
 // Returns created object with new id.
-func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRequest) (*CreateReservationResponse, error) {
+func (s *Server) CreateReservation(ctx context.Context, req *v1.CreateReservationRequest) (*v1.CreateReservationResponse, error) {
 	if req.Customer == nil {
 		return nil, status.Error(codes.InvalidArgument, "customer can't be empty")
 	}
@@ -167,7 +168,7 @@ func (s *Server) CreateReservation(ctx context.Context, req *CreateReservationRe
 }
 
 // CancelReservation cancels reservation for a bike.
-func (s *Server) CancelReservation(ctx context.Context, req *CancelReservationRequest) (*empty.Empty, error) {
+func (s *Server) CancelReservation(ctx context.Context, req *v1.CancelReservationRequest) (*empty.Empty, error) {
 	if err := s.reservationService.CancelReservation(ctx, req.BikeId, req.Id); err != nil {
 		s.logError(ctx, err, "CancelReservation")
 		return nil, NewServerError(err)
@@ -197,7 +198,7 @@ func (s *Server) logInfo(ctx context.Context, endpoint string, format string, ar
 func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
-	srv ServiceServer,
+	srv v1.ServiceServer,
 	addr string,
 ) error {
 	l, err := net.Listen("tcp", addr)
@@ -208,7 +209,7 @@ func RunServer(
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
 	)
-	RegisterServiceServer(s, srv)
+	v1.RegisterServiceServer(s, srv)
 	go func() {
 		<-ctx.Done()
 		log.Infof("grpc server: shutting down")

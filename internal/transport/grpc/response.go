@@ -2,25 +2,26 @@ package grpc
 
 import (
 	"github.com/nglogic/go-example-project/internal/app"
+	v1 "github.com/nglogic/go-example-project/pkg/api/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func newListBikesResponse(bikes []app.Bike) *ListBikesResponse {
-	respBikes := make([]*Bike, 0, len(bikes))
+func newListBikesResponse(bikes []app.Bike) *v1.ListBikesResponse {
+	respBikes := make([]*v1.Bike, 0, len(bikes))
 	for _, b := range bikes {
 		respBikes = append(respBikes, newResponseBike(&b))
 	}
 
-	return &ListBikesResponse{
+	return &v1.ListBikesResponse{
 		Bikes: respBikes,
 	}
 }
 
-func newResponseBike(b *app.Bike) *Bike {
+func newResponseBike(b *app.Bike) *v1.Bike {
 	if b == nil {
 		return nil
 	}
-	return &Bike{
+	return &v1.Bike{
 		Id:           b.ID,
 		ModelName:    b.ModelName,
 		Weight:       float32(b.Weight),
@@ -28,23 +29,23 @@ func newResponseBike(b *app.Bike) *Bike {
 	}
 }
 
-func newCreateReservationResponse(r *app.ReservationResponse) *CreateReservationResponse {
+func newCreateReservationResponse(r *app.ReservationResponse) *v1.CreateReservationResponse {
 	if r == nil {
 		return nil
 	}
 
-	return &CreateReservationResponse{
+	return &v1.CreateReservationResponse{
 		Reservation: newResponseReservation(r.Reservation),
 		Status:      newResponseReservationStatus(r.Status),
 		Reason:      r.Reason,
 	}
 }
 
-func newResponseReservation(r *app.Reservation) *Reservation {
+func newResponseReservation(r *app.Reservation) *v1.Reservation {
 	if r == nil {
 		return nil
 	}
-	return &Reservation{
+	return &v1.Reservation{
 		Id:              r.ID,
 		Status:          newResponseReservationStatus(r.Status),
 		Customer:        newResponseCustomer(&r.Customer),
@@ -56,20 +57,20 @@ func newResponseReservation(r *app.Reservation) *Reservation {
 	}
 }
 
-func newResponseCustomer(c *app.Customer) *Customer {
+func newResponseCustomer(c *app.Customer) *v1.Customer {
 	if c == nil {
 		return nil
 	}
-	var t CustomerType
+	var t v1.CustomerType
 	switch c.Type {
 	case app.CustomerTypeIndividual:
-		t = CustomerType_CUSTOMER_TYPE_INDIVIDUAL
+		t = v1.CustomerType_CUSTOMER_TYPE_INDIVIDUAL
 	case app.CustomerTypeBuisiness:
-		t = CustomerType_CUSTOMER_TYPE_BUSINESS
+		t = v1.CustomerType_CUSTOMER_TYPE_BUSINESS
 	default:
-		t = CustomerType_CUSTOMER_TYPE_UNKNOWN
+		t = v1.CustomerType_CUSTOMER_TYPE_UNKNOWN
 	}
-	return &Customer{
+	return &v1.Customer{
 		Id:        c.ID,
 		Type:      t,
 		FirstName: c.FirstName,
@@ -78,17 +79,17 @@ func newResponseCustomer(c *app.Customer) *Customer {
 	}
 }
 
-func newResponseReservationStatus(s app.ReservationStatus) ReservationStatus {
-	var status ReservationStatus
+func newResponseReservationStatus(s app.ReservationStatus) v1.ReservationStatus {
+	var status v1.ReservationStatus
 	switch s {
 	case app.ReservationStatusApproved:
-		status = ReservationStatus_RESERVATION_STATUS_APPROVED
+		status = v1.ReservationStatus_RESERVATION_STATUS_APPROVED
 	case app.ReservationStatusRejected:
-		status = ReservationStatus_RESERVATION_STATUS_REJECTED
+		status = v1.ReservationStatus_RESERVATION_STATUS_REJECTED
 	case app.ReservationStatusCanceled:
-		status = ReservationStatus_RESERVATION_STATUS_CANCELLED
+		status = v1.ReservationStatus_RESERVATION_STATUS_CANCELLED
 	default:
-		status = ReservationStatus_RESERVATION_STATUS_UNKNOWN
+		status = v1.ReservationStatus_RESERVATION_STATUS_UNKNOWN
 	}
 	return status
 }

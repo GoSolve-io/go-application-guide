@@ -1,8 +1,11 @@
 package grpc
 
-import "github.com/nglogic/go-example-project/internal/app"
+import (
+	"github.com/nglogic/go-example-project/internal/app"
+	v1 "github.com/nglogic/go-example-project/pkg/api/v1"
+)
 
-func newAppBikeFromRequest(rb *Bike) *app.Bike {
+func newAppBikeFromRequest(rb *v1.Bike) *app.Bike {
 	if rb == nil {
 		return nil
 	}
@@ -14,16 +17,16 @@ func newAppBikeFromRequest(rb *Bike) *app.Bike {
 	}
 }
 
-func newAppCustomerFromRequest(rc *Customer) *app.Customer {
+func newAppCustomerFromRequest(rc *v1.Customer) *app.Customer {
 	if rc == nil {
 		return nil
 	}
 
 	var ct app.CustomerType
 	switch rc.Type {
-	case CustomerType_CUSTOMER_TYPE_INDIVIDUAL:
+	case v1.CustomerType_CUSTOMER_TYPE_INDIVIDUAL:
 		ct = app.CustomerTypeIndividual
-	case CustomerType_CUSTOMER_TYPE_BUSINESS:
+	case v1.CustomerType_CUSTOMER_TYPE_BUSINESS:
 		ct = app.CustomerTypeBuisiness
 	}
 
@@ -36,7 +39,7 @@ func newAppCustomerFromRequest(rc *Customer) *app.Customer {
 	}
 }
 
-func newAppLocationFromRequest(rl *Location) *app.Location {
+func newAppLocationFromRequest(rl *v1.Location) *app.Location {
 	if rl == nil {
 		return nil
 	}

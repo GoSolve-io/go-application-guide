@@ -28,12 +28,17 @@ proto:
 		apiprotoc \
 		-I api \
 		--proto_path=/app/ \
-		--go_out=plugins=grpc:/app/internal/ \
-		--grpc-gateway_out=logtostderr=true:/app/internal \
+		--go_out=plugins=grpc:/app/api/ \
+		--grpc-gateway_out=logtostderr=true:/app/api \
 		--openapiv2_out api \
 		--openapiv2_opt logtostderr=true \
 		--openapiv2_opt openapi_configuration=api/service.swagger.config.yaml \
 		api/service.proto
+
+	# Move generated package to proper path.
+	rm -rf ./pkg/api/*
+	cp -rf ./api/github.com/nglogic/go-example-project/pkg/api/* ./pkg/api/
+	rm -rf ./api/github.com
 
 
 check-golangcilint-bin:
