@@ -55,10 +55,24 @@ func (s *Service) GetBikeAvailability(ctx context.Context, bikeID string, startT
 		return false, app.NewValidationError("end time has to be after end time")
 	}
 
-	available, err := s.reservationsRepo.GetBikeAvailability(ctx, bikeID, startTime, endTime)
-	if err != nil {
-		return false, fmt.Errorf("checking bike availability in reservation repository: %w", err)
+	// Check if bike exists.
+	if _, err := s.bikeService.Get(ctx, bikeID); err != nil {
+		return false, fmt.Errorf("fetching bike data: %w", err)
 	}
+
+	reservations, err := s.reservationsRepo.ListReservations(ctx, ListReservationsQuery{
+		BikeID:    bikeID,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Status:    app.ReservationStatusApproved,
+		Limit:     1,
+	})
+	if err != nil {
+		return false, fmt.Errorf("fetching reservations from repository: %w", err)
+	}
+
+	available := len(reservations) == 0
+
 	return available, nil
 }
 
@@ -68,7 +82,11 @@ func (s *Service) ListReservations(ctx context.Context, req app.ListReservations
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}
 
-	reservations, err := s.reservationsRepo.ListReservations(ctx, req)
+	reservations, err := s.reservationsRepo.ListReservations(ctx, ListReservationsQuery{
+		BikeID:    req.BikeID,
+		StartTime: req.StartTime,
+		EndTime:   req.EndTime,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("fetching reservations from repository: %w", err)
 	}

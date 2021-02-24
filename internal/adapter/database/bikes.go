@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
@@ -21,12 +22,7 @@ type BikesRepository struct {
 // List returns list of all bikes from db sorted by name ascending.
 func (r *BikesRepository) List(ctx context.Context) ([]app.Bike, error) {
 	var bikes []bikeModel
-	err := r.db.SelectContext(
-		ctx,
-		&bikes,
-		`select * from bikes b order by b.model_name asc`,
-	)
-	if err != nil {
+	if err := r.db.SelectContext(ctx, &bikes, "select * from bikes order by model_name asc"); err != nil {
 		return nil, fmt.Errorf("querying postgres: %w", err)
 	}
 
@@ -44,13 +40,7 @@ func (r *BikesRepository) Get(ctx context.Context, id string) (*app.Bike, error)
 	}
 
 	var b bikeModel
-	err := r.db.GetContext(
-		ctx,
-		&b,
-		`select * from bikes where id = $1`,
-		id,
-	)
-	if err != nil {
+	if err := r.db.GetContext(ctx, &b, "select * from bikes where id=$1", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, app.ErrNotFound
 		}
@@ -67,13 +57,20 @@ func (r *BikesRepository) Add(ctx context.Context, b app.Bike) (id string, err e
 		b.ID = uuid.NewString()
 	}
 
-	_, err = r.db.NamedExecContext(
-		ctx,
-		`insert into bikes (id,model_name,weight,price_per_h)
-		values (:id, :model_name, :weight, :price_per_h)`,
-		newBikeModel(b),
-	)
+	sqlq := sqlBuilder.Insert("bikes").
+		Columns("id", "model_name", "weight", "price_per_h").
+		Values(
+			squirrel.Expr(":id"),
+			squirrel.Expr(":model_name"),
+			squirrel.Expr(":weight"),
+			squirrel.Expr(":price_per_h"),
+		)
+	q, _, err := sqlq.ToSql()
 	if err != nil {
+		return "", fmt.Errorf("building sql query: %w", err)
+	}
+
+	if _, err = r.db.NamedExecContext(ctx, q, newBikeModel(b)); err != nil {
 		return "", fmt.Errorf("inserting bike row into postgres: %w", err)
 	}
 
@@ -88,15 +85,17 @@ func (r *BikesRepository) Update(ctx context.Context, id string, b app.Bike) err
 		return fmt.Errorf("id is empty")
 	}
 
-	res, err := r.db.NamedExecContext(
-		ctx,
-		`update bikes set
-			model_name=:model_name,
-			weight=:weight,
-			price_per_h=:price_per_h
-		where id=:id`,
-		newBikeModel(b),
-	)
+	sqlq := sqlBuilder.Update("bikes").
+		Set("model_name", squirrel.Expr(":model_name")).
+		Set("weight", squirrel.Expr(":weight")).
+		Set("price_per_h", squirrel.Expr(":price_per_h")).
+		Where(squirrel.Eq{"id": squirrel.Expr(":id")})
+	q, _, err := sqlq.ToSql()
+	if err != nil {
+		return fmt.Errorf("building sql query: %w", err)
+	}
+
+	res, err := r.db.NamedExecContext(ctx, q, newBikeModel(b))
 	if err != nil {
 		return fmt.Errorf("inserting bike row into postgres: %w", err)
 	}
@@ -116,11 +115,7 @@ func (r *BikesRepository) Delete(ctx context.Context, id string) error {
 		return errors.New("id is empty")
 	}
 
-	res, err := r.db.ExecContext(
-		ctx,
-		`delete from bikes where id=$1`,
-		id,
-	)
+	res, err := r.db.ExecContext(ctx, `delete from bikes where id=$1`, id)
 	if err != nil {
 		return fmt.Errorf("deleting bike row from postgres: %w", err)
 	}

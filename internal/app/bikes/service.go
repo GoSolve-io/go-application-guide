@@ -27,7 +27,7 @@ func NewService(bikeRepo Repository) (*Service, error) {
 func (s *Service) List(ctx context.Context) ([]app.Bike, error) {
 	bs, err := s.repository.List(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("fetching bikes from reposiytory: %w", err)
+		return nil, fmt.Errorf("fetching bikes from repository: %w", err)
 	}
 	return bs, nil
 }
@@ -36,7 +36,7 @@ func (s *Service) List(ctx context.Context) ([]app.Bike, error) {
 func (s *Service) Get(ctx context.Context, id string) (*app.Bike, error) {
 	b, err := s.repository.Get(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("fetching bike from reposiytory: %w", err)
+		return nil, fmt.Errorf("fetching bike from repository: %w", err)
 	}
 	return b, nil
 }

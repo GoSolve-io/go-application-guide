@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
@@ -26,13 +27,7 @@ func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id strin
 	}
 
 	var m customerModel
-	err := tx.GetContext(
-		ctx,
-		&m,
-		`select * from customers where id = $1`,
-		id,
-	)
-	if err != nil {
+	if err := tx.GetContext(ctx, &m, `select * from customers where id = $1`, id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, app.ErrNotFound
 		}
@@ -62,13 +57,21 @@ func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c app.Cu
 		c.ID = uuid.NewString()
 	}
 
-	_, err = tx.NamedExecContext(
-		ctx,
-		`insert into customers (id, type, first_name, surname, email)
-		values (:id, :type, :first_name, :surname, :email)`,
-		newCustmerModel(c),
-	)
+	sqlq := sqlBuilder.Insert("customers").
+		Columns("id", "type", "first_name", "surname", "email").
+		Values(
+			squirrel.Expr(":id"),
+			squirrel.Expr(":type"),
+			squirrel.Expr(":first_name"),
+			squirrel.Expr(":surname"),
+			squirrel.Expr(":email"),
+		)
+	q, _, err := sqlq.ToSql()
 	if err != nil {
+		return "", fmt.Errorf("building sql query: %w", err)
+	}
+
+	if _, err = tx.NamedExecContext(ctx, q, newCustmerModel(c)); err != nil {
 		return "", fmt.Errorf("inserting customer row into postgres: %w", err)
 	}
 

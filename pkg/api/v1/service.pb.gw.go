@@ -863,21 +863,21 @@ func RegisterServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 }
 
 var (
-	pattern_Service_ListBikes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"bikes"}, ""))
+	pattern_Service_ListBikes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "bikes"}, ""))
 
-	pattern_Service_GetBike_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"bikes", "id"}, ""))
+	pattern_Service_GetBike_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "bikes", "id"}, ""))
 
-	pattern_Service_CreateBike_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"bikes"}, ""))
+	pattern_Service_CreateBike_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "bikes"}, ""))
 
-	pattern_Service_DeleteBike_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"bikes", "id"}, ""))
+	pattern_Service_DeleteBike_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "bikes", "id"}, ""))
 
-	pattern_Service_GetBikeAvailability_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"bikes", "bike_id", "availability"}, ""))
+	pattern_Service_GetBikeAvailability_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "bikes", "bike_id", "availability"}, ""))
 
-	pattern_Service_ListReservations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"bikes", "bike_id", "reservations"}, ""))
+	pattern_Service_ListReservations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "bikes", "bike_id", "reservations"}, ""))
 
-	pattern_Service_CreateReservation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"bikes", "bike_id", "reservations"}, ""))
+	pattern_Service_CreateReservation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "bikes", "bike_id", "reservations"}, ""))
 
-	pattern_Service_CancelReservation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bikes", "bike_id", "reservations", "id"}, "cancel"))
+	pattern_Service_CancelReservation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "bikes", "bike_id", "reservations", "id"}, "cancel"))
 )
 
 var (

@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/reservation"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,6 +20,10 @@ const (
 	customerTypeIndividual = "individual"
 )
 
+const (
+	defaultReservationsLimit = 10
+)
+
 // ReservationsRepository manages reservation data in db.
 type ReservationsRepository struct {
 	parent *Adapter
@@ -25,41 +31,40 @@ type ReservationsRepository struct {
 	log    logrus.FieldLogger
 }
 
-// GetBikeAvailability returns true if bike with given id is available for rent in given time range.
-func (r *ReservationsRepository) GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error) {
-	tx, err := r.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return false, fmt.Errorf("creating postgresql transaction: %w", err)
-	}
-	defer func() {
-		_ = tx.Commit()
-	}()
-
-	return r.checkAvailability(ctx, tx, bikeID, startTime, endTime)
-}
-
 // ListReservations returns list of reservations matching request criteria.
-func (r *ReservationsRepository) ListReservations(ctx context.Context, req app.ListReservationsRequest) ([]app.Reservation, error) {
-	var rs []reservationModel
-	err := r.db.SelectContext(
-		ctx,
-		&rs,
-		`select 
-			r.*, 
-			c.first_name, c.surname, c.email, c.type,
-			b.model_name, b.weight, b.price_per_h
-		from reservations r
-		inner join customers c on r.customer_id = c.id
-		inner join bikes b on r.bike_id = b.id
-		where 
-			r.start_time < $2
-			and r.end_time > $1
-			and r.bike_id = $3`,
-		req.StartTime,
-		req.EndTime,
-		req.BikeID,
-	)
+func (r *ReservationsRepository) ListReservations(ctx context.Context, query reservation.ListReservationsQuery) ([]app.Reservation, error) {
+	sqlq := sqlBuilder.Select(
+		"r.*",
+		"c.first_name", "c.surname", "c.email", "c.type",
+		"b.model_name", "b.weight", "b.price_per_h",
+	).
+		From("reservations r").
+		Join("customers c on r.customer_id = c.id").
+		Join("bikes b on r.bike_id = b.id")
+	if query.BikeID != "" {
+		sqlq = sqlq.Where(squirrel.Eq{"r.bike_id": query.BikeID})
+	}
+	if !query.StartTime.IsZero() {
+		sqlq = sqlq.Where(squirrel.Gt{"r.end_time": query.StartTime})
+	}
+	if !query.EndTime.IsZero() {
+		sqlq = sqlq.Where(squirrel.Lt{"r.start_time": query.EndTime})
+	}
+	if query.Status != app.ReservationStatusEmpty {
+		sqlq = sqlq.Where(squirrel.Eq{"r.status": query.Status})
+	}
+	if query.Limit > 0 {
+		sqlq = sqlq.Limit(uint64(query.Limit))
+	} else {
+		sqlq = sqlq.Limit(defaultReservationsLimit)
+	}
+	q, args, err := sqlq.ToSql()
 	if err != nil {
+		return nil, fmt.Errorf("building sql query: %w", err)
+	}
+
+	var rs []reservationModel
+	if err := r.db.SelectContext(ctx, &rs, q, args...); err != nil {
 		return nil, fmt.Errorf("querying for reservations in postgresql: %w", err)
 	}
 
@@ -134,14 +139,16 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 // CancelReservation sets reservation status to canceled.
 // Returns app.ErrNotFound if reservation doesn't exists.
 func (r *ReservationsRepository) CancelReservation(ctx context.Context, bikeID string, id string) error {
-	res, err := r.db.ExecContext(
-		ctx,
-		`update reservations 
-		set status='canceled'
-		where bike_id=$1 and id=$2`,
-		bikeID,
-		id,
-	)
+	sqlq := sqlBuilder.Update("reservations").
+		Set("status", app.ReservationStatusCanceled).
+		Where(squirrel.Eq{"bike_id": bikeID}).
+		Where(squirrel.Eq{"id": "id"})
+	q, args, err := sqlq.ToSql()
+	if err != nil {
+		return fmt.Errorf("building sql query: %w", err)
+	}
+
+	res, err := r.db.ExecContext(ctx, q, args...)
 	if err != nil {
 		return fmt.Errorf("updating reservation status in postgres: %w", err)
 	}
@@ -154,20 +161,19 @@ func (r *ReservationsRepository) CancelReservation(ctx context.Context, bikeID s
 }
 
 func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx.Tx, bikeID string, startTime, endTime time.Time) (bool, error) {
+	sqlq := sqlBuilder.Select("count(*)").
+		From("reservations").
+		Where(squirrel.Eq{"bike_id": bikeID}).
+		Where(squirrel.Gt{"end_time": startTime}).
+		Where(squirrel.Lt{"start_time": endTime}).
+		Where(squirrel.NotEq{"status": app.ReservationStatusCanceled})
+	q, args, err := sqlq.ToSql()
+	if err != nil {
+		return false, fmt.Errorf("building sql query: %w", err)
+	}
+
 	var count int
-	rows, err := tx.NamedQuery(
-		`select count(*) from reservations WHERE 
-			bike_id = :bike_id
-			and start_time < :end_time
-			and end_time > :start_time
-			and status != 'canceled'
-		`,
-		map[string]interface{}{
-			"bike_id":    bikeID,
-			"start_time": startTime,
-			"end_time":   endTime,
-		},
-	)
+	rows, err := tx.QueryContext(ctx, q, args...)
 	if err != nil {
 		return false, fmt.Errorf("querying for conflicting reservations in postgresql: %w", err)
 	}
@@ -197,13 +203,26 @@ func (r *ReservationsRepository) checkReservationData(reservation app.Reservatio
 }
 
 func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx.Tx, reservation app.Reservation) error {
-	m := newReservationModel(reservation)
-	_, err := tx.NamedExec(
-		`insert into reservations (id, status, bike_id, customer_id, start_time, end_time, total_value, applied_discount)
-		values (:id, :status, :bike_id, :customer_id, :start_time, :end_time, :total_value, :applied_discount)`,
-		m,
-	)
+	sqlq := sqlBuilder.
+		Insert("reservations").
+		Columns("id", "status", "bike_id", "customer_id", "start_time", "end_time", "total_value", "applied_discount").
+		Values(
+			squirrel.Expr(":id"),
+			squirrel.Expr(":status"),
+			squirrel.Expr(":bike_id"),
+			squirrel.Expr(":customer_id"),
+			squirrel.Expr(":start_time"),
+			squirrel.Expr(":end_time"),
+			squirrel.Expr(":total_value"),
+			squirrel.Expr(":applied_discount"),
+		)
+	q, _, err := sqlq.ToSql()
 	if err != nil {
+		return fmt.Errorf("building sql query: %w", err)
+	}
+
+	m := newReservationModel(reservation)
+	if _, err := tx.NamedExec(q, m); err != nil {
 		return fmt.Errorf("inserting reservation row into postgres: %w", err)
 	}
 

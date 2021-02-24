@@ -178,12 +178,16 @@ func (s *Server) CancelReservation(ctx context.Context, req *v1.CancelReservatio
 }
 
 func (s *Server) logError(ctx context.Context, err error, endpoint string) {
-	// Don't log errors caused by invalid user input.
-	if app.IsValidationError(err) {
+	switch {
+	case app.IsValidationError(err):
+		// Don't log errors caused by invalid user input.
 		return
+	case app.IsNotFoundError(err):
+		// Don't log if requested resource doesn't exist.
+		return
+	default:
+		app.AugmentLogFromCtx(ctx, s.log).Errorf("handling request for %s: %v", endpoint, err)
 	}
-
-	app.AugmentLogFromCtx(ctx, s.log).Errorf("handling request for %s: %v", endpoint, err)
 }
 
 func (s *Server) logInfo(ctx context.Context, endpoint string, format string, args ...interface{}) {

@@ -21,7 +21,7 @@
     "application/json"
   ],
   "paths": {
-    "/bikes": {
+    "/v1/bikes": {
       "get": {
         "summary": "List all bikes.",
         "operationId": "Service_ListBikes",
@@ -92,7 +92,7 @@
         ]
       }
     },
-    "/bikes/{bikeId}/availability": {
+    "/v1/bikes/{bikeId}/availability": {
       "get": {
         "summary": "Check if bike is available.",
         "operationId": "Service_GetBikeAvailability",
@@ -145,7 +145,7 @@
         ]
       }
     },
-    "/bikes/{bikeId}/reservations": {
+    "/v1/bikes/{bikeId}/reservations": {
       "get": {
         "summary": "List reservations.",
         "description": "Returns list of reservations for a bike.",
@@ -245,7 +245,7 @@
         ]
       }
     },
-    "/bikes/{bikeId}/reservations/{id}:cancel": {
+    "/v1/bikes/{bikeId}/reservations/{id}:cancel": {
       "post": {
         "summary": "Cancel reservation.",
         "operationId": "Service_CancelReservation",
@@ -290,7 +290,7 @@
         ]
       }
     },
-    "/bikes/{id}": {
+    "/v1/bikes/{id}": {
       "get": {
         "summary": "Return bike by id.",
         "operationId": "Service_GetBike",

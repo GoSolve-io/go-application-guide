@@ -6,8 +6,13 @@ import (
 	// Needed for registering postgres drivers in sql package.
 	_ "github.com/lib/pq"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	sqlBuilder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 )
 
 // Adapter is a storage adapter for app.

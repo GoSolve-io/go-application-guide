@@ -15,14 +15,14 @@ service Service {
     // List all bikes.
     rpc ListBikes(google.protobuf.Empty) returns (ListBikesResponse) {
         option (google.api.http) = {
-            get: "/bikes"
+            get: "/v1/bikes"
         };
     };
 
     // Return bike by id.
     rpc GetBike(GetBikeRequest) returns (Bike) {
         option (google.api.http) = {
-            get: "/bikes/{id=*}"
+            get: "/v1/bikes/{id=*}"
         };
     };
 
@@ -31,7 +31,7 @@ service Service {
     // Returns created object with new id.
     rpc CreateBike(CreateBikeRequest) returns (Bike) {
         option (google.api.http) = {
-            post: "/bikes"
+            post: "/v1/bikes"
             body: "bike"
         };
     };
@@ -39,14 +39,14 @@ service Service {
     // Delete a bike by id.
     rpc DeleteBike(DeleteBikeRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/bikes/{id=*}"
+            delete: "/v1/bikes/{id=*}"
         };
     };
 
     // Check if bike is available.
     rpc GetBikeAvailability(GetBikeAvailabilityRequest) returns (GetBikeAvailabilityResponse) {
         option (google.api.http) = {
-            get: "/bikes/{bike_id=*}/availability"
+            get: "/v1/bikes/{bike_id=*}/availability"
         };
     };
 
@@ -55,7 +55,7 @@ service Service {
     // Returns list of reservations for a bike.
     rpc ListReservations(ListReservationsRequest) returns (ListReservationsResponse) {
         option (google.api.http) = {
-            get: "/bikes/{bike_id=*}/reservations"
+            get: "/v1/bikes/{bike_id=*}/reservations"
         };
     };
 
@@ -64,7 +64,7 @@ service Service {
     // Returns created object with new id.
     rpc CreateReservation(CreateReservationRequest) returns (CreateReservationResponse) {
         option (google.api.http) = {
-            post: "/bikes/{bike_id=*}/reservations"
+            post: "/v1/bikes/{bike_id=*}/reservations"
             body: "*"
         };
     };
@@ -72,7 +72,7 @@ service Service {
     // Cancel reservation.
     rpc CancelReservation(CancelReservationRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/bikes/{bike_id=*}/reservations/{id=*}:cancel"
+            post: "/v1/bikes/{bike_id=*}/reservations/{id=*}:cancel"
         };
     };
 }

@@ -3,6 +3,7 @@ module github.com/nglogic/go-example-project
 go 1.15
 
 require (
+	github.com/Masterminds/squirrel v1.5.0
 	github.com/badoux/checkmail v1.2.1
 	github.com/caarlos0/env/v6 v6.5.0
 	github.com/golang/protobuf v1.4.3

@@ -11,6 +11,7 @@ type ReservationStatus string
 
 // Reservation statuses.
 const (
+	ReservationStatusEmpty    ReservationStatus = ""
 	ReservationStatusRejected ReservationStatus = "rejected"
 	ReservationStatusApproved ReservationStatus = "approved"
 	ReservationStatusCanceled ReservationStatus = "canceled"
