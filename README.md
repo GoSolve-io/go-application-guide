@@ -38,7 +38,7 @@ Table of contents
 
 ### What is this repository?
 
-This repository is kind of guide explaining how to write most common type of backend service in go. The guide consists of 2 complementary parts: 
+This repository works as a guide explaining how to write most common type of backend service in go. The guide consists of 2 complementary parts:
 
 - A set of documents explaining various aspects of typical go backend service,
 - Fully working codebase, implementing these documents in practice.

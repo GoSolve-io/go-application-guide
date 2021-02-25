@@ -29,7 +29,9 @@ Build and API for bike rental service.
         - On failure: reason of failure (i.e. bike is not available at this time range).
         1. API should calculate discount for reservation. rules for discount described later in specs.
     3. List all reservations for a bike in given time range. 
-    4. Cancel reservation (don't delete data!)
+       1. Reservation list should include cancelled ones too.
+    4. Cancel reservation
+       1. Don't delete data!
     5. Check possible discount
         API user provides:
         - customer info,
@@ -58,6 +60,6 @@ Build and API for bike rental service.
             If reservation time is >= 24h, apply 15% discount
     3. Combining discounts
         If customer applies to more than 1 discount, choose only one with highest value.
-4. Authentication/Authorization
+4. Authentication/Authorization (optional, smaller priority)
    1. Simple authentication (TODO: specify)
    2. No special authorization.
