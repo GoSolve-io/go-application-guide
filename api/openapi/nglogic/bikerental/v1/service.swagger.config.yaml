@@ -3,7 +3,7 @@
 
 openapiOptions:
   file:
-    - file: "service.proto"
+    - file: "nglogic/bikerental/v1/service.proto"
       option:
         info:
           version: "1.0"

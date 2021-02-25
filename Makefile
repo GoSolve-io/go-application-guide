@@ -26,14 +26,14 @@ proto:
 	docker run --rm -u ${USER}:${GROUP} \
 		-v $(PWD):/app \
 		apiprotoc \
-		-I api \
+		-I api/proto \
 		--proto_path=/app/ \
 		--go_out=plugins=grpc:/app/api/ \
 		--grpc-gateway_out=logtostderr=true:/app/api \
-		--openapiv2_out api \
+		--openapiv2_out api/openapi \
 		--openapiv2_opt logtostderr=true \
-		--openapiv2_opt openapi_configuration=api/service.swagger.config.yaml \
-		api/service.proto
+		--openapiv2_opt openapi_configuration=api/openapi/nglogic/bikerental/v1/service.swagger.config.yaml \
+		api/proto/nglogic/bikerental/v1/service.proto
 
 	# Move generated package to proper path.
 	rm -rf ./pkg/api/*

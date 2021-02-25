@@ -7,7 +7,7 @@
   },
   "tags": [
     {
-      "name": "Service"
+      "name": "BikeRentalService"
     }
   ],
   "host": "localhost:8080",
@@ -24,7 +24,7 @@
     "/v1/bikes": {
       "get": {
         "summary": "List all bikes.",
-        "operationId": "Service_ListBikes",
+        "operationId": "BikeRentalService_ListBikes",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -48,13 +48,13 @@
           }
         },
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       },
       "post": {
         "summary": "Create new bike.",
         "description": "Returns created object with new id.",
-        "operationId": "Service_CreateBike",
+        "operationId": "BikeRentalService_CreateBike",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -88,14 +88,14 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       }
     },
     "/v1/bikes/{bikeId}/availability": {
       "get": {
         "summary": "Check if bike is available.",
-        "operationId": "Service_GetBikeAvailability",
+        "operationId": "BikeRentalService_GetBikeAvailability",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -141,7 +141,7 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       }
     },
@@ -149,7 +149,7 @@
       "get": {
         "summary": "List reservations.",
         "description": "Returns list of reservations for a bike.",
-        "operationId": "Service_ListReservations",
+        "operationId": "BikeRentalService_ListReservations",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -195,13 +195,13 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       },
       "post": {
         "summary": "Create reservation.",
         "description": "Returns created object with new id.",
-        "operationId": "Service_CreateReservation",
+        "operationId": "BikeRentalService_CreateReservation",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -241,14 +241,14 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       }
     },
     "/v1/bikes/{bikeId}/reservations/{id}:cancel": {
       "post": {
         "summary": "Cancel reservation.",
-        "operationId": "Service_CancelReservation",
+        "operationId": "BikeRentalService_CancelReservation",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -286,14 +286,14 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       }
     },
     "/v1/bikes/{id}": {
       "get": {
         "summary": "Return bike by id.",
-        "operationId": "Service_GetBike",
+        "operationId": "BikeRentalService_GetBike",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -325,12 +325,12 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       },
       "delete": {
         "summary": "Delete a bike by id.",
-        "operationId": "Service_DeleteBike",
+        "operationId": "BikeRentalService_DeleteBike",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -362,7 +362,7 @@
           }
         ],
         "tags": [
-          "Service"
+          "BikeRentalService"
         ]
       }
     }

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	v1 "github.com/nglogic/go-example-project/pkg/api/v1"
+	"github.com/nglogic/go-example-project/pkg/api/bikerentalv1"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,11 +24,11 @@ const (
 func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
-	srv v1.ServiceServer,
+	srv bikerentalv1.BikeRentalServiceServer,
 	addr string,
 ) error {
 	mux := runtime.NewServeMux()
-	if err := v1.RegisterServiceHandlerServer(ctx, mux, srv); err != nil {
+	if err := bikerentalv1.RegisterBikeRentalServiceHandlerServer(ctx, mux, srv); err != nil {
 		return fmt.Errorf("registering http handlers for server: %w", err)
 	}
 
