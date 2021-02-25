@@ -1,9 +1,10 @@
-package app
+package bikerental
 
 import (
 	"fmt"
 
 	"github.com/badoux/checkmail"
+	"github.com/nglogic/go-example-project/internal/app"
 )
 
 // CustomerType represents customer type.
@@ -30,11 +31,11 @@ func (c Customer) Validate() error {
 	switch c.Type {
 	case CustomerTypeIndividual, CustomerTypeBuisiness:
 	default:
-		return NewValidationError("invalid customer type")
+		return app.NewValidationError("invalid customer type")
 	}
 
 	if c.FirstName == "" {
-		return NewValidationError("first name is required")
+		return app.NewValidationError("first name is required")
 	}
 
 	// For simplicity we use external library to validate emails.
@@ -42,7 +43,7 @@ func (c Customer) Validate() error {
 	// So this is an exception that works only for well defined tasks (like email validation).
 	if c.Email != "" {
 		if err := checkmail.ValidateFormat(c.Email); err != nil {
-			return ValidationError{
+			return app.ValidationError{
 				Err: fmt.Errorf("invalid email address: %w", err),
 			}
 		}

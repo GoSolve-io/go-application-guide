@@ -8,6 +8,7 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 	"github.com/nglogic/go-example-project/pkg/api/bikerentalv1"
 	"github.com/sirupsen/logrus"
 	grpc "google.golang.org/grpc"
@@ -17,15 +18,15 @@ import (
 
 // Server implements rpc ServiceServer.
 type Server struct {
-	bikeService        app.BikeService
-	reservationService app.ReservationService
+	bikeService        bikerental.BikeService
+	reservationService bikerental.ReservationService
 	log                logrus.FieldLogger
 }
 
 // NewServer creates new Server instance.
 func NewServer(
-	bikeService app.BikeService,
-	reservationService app.ReservationService,
+	bikeService bikerental.BikeService,
+	reservationService bikerental.ReservationService,
 	log logrus.FieldLogger,
 ) (*Server, error) {
 	if bikeService == nil {
@@ -114,7 +115,7 @@ func (s *Server) GetBikeAvailability(ctx context.Context, req *bikerentalv1.GetB
 
 // ListReservations returns list of reservations for a bike.
 func (s *Server) ListReservations(ctx context.Context, req *bikerentalv1.ListReservationsRequest) (*bikerentalv1.ListReservationsResponse, error) {
-	reservations, err := s.reservationService.ListReservations(ctx, app.ListReservationsRequest{
+	reservations, err := s.reservationService.ListReservations(ctx, bikerental.ListReservationsRequest{
 		BikeID:    req.BikeId,
 		StartTime: req.StartTime.AsTime(),
 		EndTime:   req.EndTime.AsTime(),
@@ -146,7 +147,7 @@ func (s *Server) CreateReservation(ctx context.Context, req *bikerentalv1.Create
 	}
 	location := newAppLocationFromRequest(req.Location)
 
-	resp, err := s.reservationService.CreateReservation(ctx, app.CreateReservationRequest{
+	resp, err := s.reservationService.CreateReservation(ctx, bikerental.CreateReservationRequest{
 		BikeID:    req.BikeId,
 		Customer:  *customer,
 		Location:  *location,

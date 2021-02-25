@@ -1,6 +1,10 @@
-package app
+package bikerental
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/nglogic/go-example-project/internal/app"
+)
 
 // Location represents physical location coordinates.
 type Location struct {
@@ -11,7 +15,7 @@ type Location struct {
 // Validate validates location attributes.
 func (l *Location) Validate() error {
 	if l.Lat == 0 || l.Long == 0 {
-		return NewValidationError(fmt.Sprintf("invalid coordinates: %f, %f", l.Lat, l.Long))
+		return app.NewValidationError(fmt.Sprintf("invalid coordinates: %f, %f", l.Lat, l.Long))
 	}
 	return nil
 }

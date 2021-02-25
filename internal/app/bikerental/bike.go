@@ -1,6 +1,10 @@
-package app
+package bikerental
 
-import "context"
+import (
+	"context"
+
+	"github.com/nglogic/go-example-project/internal/app"
+)
 
 // Bike represents a bike for rent.
 type Bike struct {
@@ -13,10 +17,10 @@ type Bike struct {
 // Validate validates bike data.
 func (b *Bike) Validate() error {
 	if b.ModelName == "" {
-		return NewValidationError("empty model name")
+		return app.NewValidationError("empty model name")
 	}
 	if b.Weight == 0 {
-		return NewValidationError("empty weight")
+		return app.NewValidationError("empty weight")
 	}
 
 	return nil

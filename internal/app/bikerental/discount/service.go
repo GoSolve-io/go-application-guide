@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 )
 
 const (
@@ -15,14 +16,14 @@ const (
 
 // Service provides methods for calculating discounts for a bike rental.
 type Service struct {
-	weatherService   app.WeatherService
-	incidentsService app.BikeIncidentsService
+	weatherService   bikerental.WeatherService
+	incidentsService bikerental.BikeIncidentsService
 }
 
 // NewService creates new service instance.
 func NewService(
-	weather app.WeatherService,
-	incidents app.BikeIncidentsService,
+	weather bikerental.WeatherService,
+	incidents bikerental.BikeIncidentsService,
 ) (*Service, error) {
 	if weather == nil {
 		return nil, errors.New("empty weather service")
@@ -38,12 +39,12 @@ func NewService(
 }
 
 // CalculateDiscount returns available discount for a bike rental.
-func (s *Service) CalculateDiscount(ctx context.Context, r app.DiscountRequest) (*app.DiscountResponse, error) {
+func (s *Service) CalculateDiscount(ctx context.Context, r bikerental.DiscountRequest) (*bikerental.DiscountResponse, error) {
 	if err := r.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}
 
-	weather, err := s.weatherService.GetWeather(ctx, app.WeatherRequest{
+	weather, err := s.weatherService.GetWeather(ctx, bikerental.WeatherRequest{
 		Location: r.Location,
 	})
 	if err != nil {
@@ -55,7 +56,7 @@ func (s *Service) CalculateDiscount(ctx context.Context, r app.DiscountRequest) 
 		}
 	}
 
-	incidents, err := s.incidentsService.GetIncidents(ctx, app.BikeIncidentsRequest{
+	incidents, err := s.incidentsService.GetIncidents(ctx, bikerental.BikeIncidentsRequest{
 		Location:  r.Location,
 		Proximity: incidentsProximity,
 	})
@@ -75,7 +76,7 @@ func (s *Service) CalculateDiscount(ctx context.Context, r app.DiscountRequest) 
 		newBusinessCustomerDiscount(r.ReservationValue, r.Customer),
 	)
 
-	return &app.DiscountResponse{
+	return &bikerental.DiscountResponse{
 		Discount: discount,
 	}, nil
 }

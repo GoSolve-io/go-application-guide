@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,21 +21,21 @@ type BikesRepository struct {
 }
 
 // List returns list of all bikes from db sorted by name ascending.
-func (r *BikesRepository) List(ctx context.Context) ([]app.Bike, error) {
+func (r *BikesRepository) List(ctx context.Context) ([]bikerental.Bike, error) {
 	var bikes []bikeModel
 	if err := r.db.SelectContext(ctx, &bikes, "select * from bikes order by model_name asc"); err != nil {
 		return nil, fmt.Errorf("querying postgres: %w", err)
 	}
 
-	result := make([]app.Bike, 0, len(bikes))
+	result := make([]bikerental.Bike, 0, len(bikes))
 	for _, b := range bikes {
 		result = append(result, b.ToAppBike())
 	}
 	return result, nil
 }
 
-// Get returns a bike by id. If it doesn't exists, returns app.ErrNotFound error.
-func (r *BikesRepository) Get(ctx context.Context, id string) (*app.Bike, error) {
+// Get returns a bike by id. If it doesn't exists, returns bikerental.ErrNotFound error.
+func (r *BikesRepository) Get(ctx context.Context, id string) (*bikerental.Bike, error) {
 	if id == "" {
 		return nil, errors.New("id is empty")
 	}
@@ -52,7 +53,7 @@ func (r *BikesRepository) Get(ctx context.Context, id string) (*app.Bike, error)
 }
 
 // Add creates new bike in db.
-func (r *BikesRepository) Add(ctx context.Context, b app.Bike) (id string, err error) {
+func (r *BikesRepository) Add(ctx context.Context, b bikerental.Bike) (id string, err error) {
 	if b.ID == "" {
 		b.ID = uuid.NewString()
 	}
@@ -79,8 +80,8 @@ func (r *BikesRepository) Add(ctx context.Context, b app.Bike) (id string, err e
 	return b.ID, nil
 }
 
-// Update updates a bike in db by id. If bike is not in db, returns app.ErrNotFound error.
-func (r *BikesRepository) Update(ctx context.Context, id string, b app.Bike) error {
+// Update updates a bike in db by id. If bike is not in db, returns bikerental.ErrNotFound error.
+func (r *BikesRepository) Update(ctx context.Context, id string, b bikerental.Bike) error {
 	if id == "" {
 		return fmt.Errorf("id is empty")
 	}
@@ -109,7 +110,7 @@ func (r *BikesRepository) Update(ctx context.Context, id string, b app.Bike) err
 	return nil
 }
 
-// Delete deletes a bike from db by id. If bike is not in db, returns app.ErrNotFound error.
+// Delete deletes a bike from db by id. If bike is not in db, returns bikerental.ErrNotFound error.
 func (r *BikesRepository) Delete(ctx context.Context, id string) error {
 	if id == "" {
 		return errors.New("id is empty")
@@ -136,11 +137,11 @@ type bikeModel struct {
 	PricePerHour float64 `db:"price_per_h"`
 }
 
-func newBikeModel(ab app.Bike) bikeModel {
+func newBikeModel(ab bikerental.Bike) bikeModel {
 	// In this example bike is really simple and can be exaclty the same as domain bike type.
 	return bikeModel(ab)
 }
 
-func (b *bikeModel) ToAppBike() app.Bike {
-	return app.Bike(*b)
+func (b *bikeModel) ToAppBike() bikerental.Bike {
+	return bikerental.Bike(*b)
 }

@@ -1,9 +1,11 @@
-package app
+package bikerental
 
 import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/nglogic/go-example-project/internal/app"
 )
 
 // ReservationStatus describes reservation status.
@@ -63,7 +65,7 @@ type CreateReservationRequest struct {
 // Validate validates request data.
 func (r *CreateReservationRequest) Validate() error {
 	if r.BikeID == "" {
-		return NewValidationError("bike id is empty")
+		return app.NewValidationError("bike id is empty")
 	}
 	if r.Customer.ID == "" {
 		if err := r.Customer.Validate(); err != nil {
@@ -75,10 +77,10 @@ func (r *CreateReservationRequest) Validate() error {
 	}
 
 	if r.StartTime.Before(time.Now()) {
-		return NewValidationError("start time time can't be in the past")
+		return app.NewValidationError("start time time can't be in the past")
 	}
 	if r.EndTime.Before(r.StartTime) {
-		return NewValidationError("end time have to ba after start time")
+		return app.NewValidationError("end time have to ba after start time")
 	}
 
 	return nil
@@ -107,18 +109,18 @@ type ListReservationsRequest struct {
 // Validate validates request data.
 func (r *ListReservationsRequest) Validate() error {
 	if r.BikeID == "" {
-		return NewValidationError("bike id can't be empty")
+		return app.NewValidationError("bike id can't be empty")
 	}
 
 	// Note: IsZero check doesn't work for empty timestamps created by empty protobuf timestamp.AsTime.
 	if r.StartTime.Unix() == 0 {
-		return NewValidationError("start time can't be empty")
+		return app.NewValidationError("start time can't be empty")
 	}
 	if r.EndTime.Unix() == 0 {
-		return NewValidationError("end time can't be empty")
+		return app.NewValidationError("end time can't be empty")
 	}
 	if r.EndTime.Before(r.StartTime) {
-		return NewValidationError("end time have to ba after start time")
+		return app.NewValidationError("end time have to ba after start time")
 	}
 
 	return nil

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	ahttp "github.com/nglogic/go-example-project/internal/adapter/http"
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 )
 
 // Adapter uses metaweather service for providing weather data.
@@ -39,7 +39,7 @@ func NewAdapter(address string, timeout time.Duration, httpDoer ahttp.Doer) (*Ad
 }
 
 // GetWeather fetches weather data for a location.
-func (a *Adapter) GetWeather(ctx context.Context, req app.WeatherRequest) (*app.Weather, error) {
+func (a *Adapter) GetWeather(ctx context.Context, req bikerental.WeatherRequest) (*bikerental.Weather, error) {
 	locID, err := a.fetchLocationID(ctx, req.Location)
 	if err != nil {
 		return nil, fmt.Errorf("fetching location id by coordinates (%s): %w", req.Location.String(), err)
@@ -55,12 +55,12 @@ func (a *Adapter) GetWeather(ctx context.Context, req app.WeatherRequest) (*app.
 	if weather == nil {
 		return nil, nil
 	}
-	return &app.Weather{
+	return &bikerental.Weather{
 		Temperature: weather.TheTemp,
 	}, nil
 }
 
-func (a *Adapter) fetchLocationID(ctx context.Context, loc app.Location) (int, error) {
+func (a *Adapter) fetchLocationID(ctx context.Context, loc bikerental.Location) (int, error) {
 	urlVal := fmt.Sprintf("%s/api/location/search/", a.address)
 	query := url.Values{
 		"lattlong": []string{

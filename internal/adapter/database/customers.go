@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,8 +21,8 @@ type CustomersRepository struct {
 }
 
 // GetInTx returns a customer by id using existing transaction.
-// If customer doesn't exists, returns app.ErrNotFound error.
-func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id string) (*app.Customer, error) {
+// If customer doesn't exists, returns bikerental.ErrNotFound error.
+func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id string) (*bikerental.Customer, error) {
 	if id == "" {
 		return nil, errors.New("id is empty")
 	}
@@ -38,8 +39,8 @@ func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id strin
 	return &result, nil
 }
 
-// Get returns a customer by id. If it doesn't exists, returns app.ErrNotFound error.
-func (r *CustomersRepository) Get(ctx context.Context, id string) (*app.Customer, error) {
+// Get returns a customer by id. If it doesn't exists, returns bikerental.ErrNotFound error.
+func (r *CustomersRepository) Get(ctx context.Context, id string) (*bikerental.Customer, error) {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating postgresql transaction: %w", err)
@@ -52,7 +53,7 @@ func (r *CustomersRepository) Get(ctx context.Context, id string) (*app.Customer
 }
 
 // AddInTx creates new customer in db using existing db transaction.
-func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c app.Customer) (id string, err error) {
+func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c bikerental.Customer) (id string, err error) {
 	if c.ID == "" {
 		c.ID = uuid.NewString()
 	}
@@ -88,7 +89,7 @@ type customerModel struct {
 	Email     string `db:"email"`
 }
 
-func newCustmerModel(ac app.Customer) customerModel {
+func newCustmerModel(ac bikerental.Customer) customerModel {
 	c := customerModel{
 		ID:        ac.ID,
 		FirstName: ac.FirstName,
@@ -96,17 +97,17 @@ func newCustmerModel(ac app.Customer) customerModel {
 		Email:     ac.Email,
 	}
 	switch ac.Type {
-	case app.CustomerTypeBuisiness:
+	case bikerental.CustomerTypeBuisiness:
 		c.Type = customerTypeBusiness
-	case app.CustomerTypeIndividual:
+	case bikerental.CustomerTypeIndividual:
 		c.Type = customerTypeIndividual
 	}
 
 	return c
 }
 
-func (m *customerModel) ToAppCustomer() app.Customer {
-	c := app.Customer{
+func (m *customerModel) ToAppCustomer() bikerental.Customer {
+	c := bikerental.Customer{
 		ID:        m.ID,
 		Type:      0,
 		FirstName: m.FirstName,
@@ -115,9 +116,9 @@ func (m *customerModel) ToAppCustomer() app.Customer {
 	}
 	switch m.Type {
 	case customerTypeBusiness:
-		c.Type = app.CustomerTypeBuisiness
+		c.Type = bikerental.CustomerTypeBuisiness
 	case customerTypeIndividual:
-		c.Type = app.CustomerTypeIndividual
+		c.Type = bikerental.CustomerTypeIndividual
 	}
 	return c
 }

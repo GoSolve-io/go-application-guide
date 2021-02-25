@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 )
 
 // Service provides methods for managing bikes for rental.
@@ -24,7 +25,7 @@ func NewService(bikeRepo Repository) (*Service, error) {
 }
 
 // List returns all possible bikes.
-func (s *Service) List(ctx context.Context) ([]app.Bike, error) {
+func (s *Service) List(ctx context.Context) ([]bikerental.Bike, error) {
 	bs, err := s.repository.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetching bikes from repository: %w", err)
@@ -33,7 +34,7 @@ func (s *Service) List(ctx context.Context) ([]app.Bike, error) {
 }
 
 // Get returns a bike by id.
-func (s *Service) Get(ctx context.Context, id string) (*app.Bike, error) {
+func (s *Service) Get(ctx context.Context, id string) (*bikerental.Bike, error) {
 	b, err := s.repository.Get(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("fetching bike from repository: %w", err)
@@ -43,7 +44,7 @@ func (s *Service) Get(ctx context.Context, id string) (*app.Bike, error) {
 
 // Add adds a new bike.
 // Returns added bike with new id.
-func (s *Service) Add(ctx context.Context, b app.Bike) (*app.Bike, error) {
+func (s *Service) Add(ctx context.Context, b bikerental.Bike) (*bikerental.Bike, error) {
 	if b.ID != "" {
 		return nil, app.NewValidationError("can't add new bike with not empty id")
 	}
@@ -61,7 +62,7 @@ func (s *Service) Add(ctx context.Context, b app.Bike) (*app.Bike, error) {
 }
 
 // Update updates existing bike by id.
-func (s *Service) Update(ctx context.Context, id string, b app.Bike) error {
+func (s *Service) Update(ctx context.Context, id string, b bikerental.Bike) error {
 	if id == "" {
 		return app.NewValidationError("empty id")
 	}

@@ -10,7 +10,8 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-example-project/internal/app"
-	"github.com/nglogic/go-example-project/internal/app/reservation"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
+	"github.com/nglogic/go-example-project/internal/app/bikerental/reservation"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,7 +33,7 @@ type ReservationsRepository struct {
 }
 
 // ListReservations returns list of reservations matching request criteria.
-func (r *ReservationsRepository) ListReservations(ctx context.Context, query reservation.ListReservationsQuery) ([]app.Reservation, error) {
+func (r *ReservationsRepository) ListReservations(ctx context.Context, query reservation.ListReservationsQuery) ([]bikerental.Reservation, error) {
 	sqlq := sqlBuilder.Select(
 		"r.*",
 		"c.first_name", "c.surname", "c.email", "c.type",
@@ -50,7 +51,7 @@ func (r *ReservationsRepository) ListReservations(ctx context.Context, query res
 	if !query.EndTime.IsZero() {
 		sqlq = sqlq.Where(squirrel.Lt{"r.start_time": query.EndTime})
 	}
-	if query.Status != app.ReservationStatusEmpty {
+	if query.Status != bikerental.ReservationStatusEmpty {
 		sqlq = sqlq.Where(squirrel.Eq{"r.status": query.Status})
 	}
 	if query.Limit > 0 {
@@ -68,7 +69,7 @@ func (r *ReservationsRepository) ListReservations(ctx context.Context, query res
 		return nil, fmt.Errorf("querying for reservations in postgresql: %w", err)
 	}
 
-	result := make([]app.Reservation, 0, len(rs))
+	result := make([]bikerental.Reservation, 0, len(rs))
 	for _, v := range rs {
 		result = append(result, v.ToAppReservation())
 	}
@@ -78,7 +79,7 @@ func (r *ReservationsRepository) ListReservations(ctx context.Context, query res
 // CreateReservation creates new reservation in db.
 // Bike id must be provided.
 // If customer doesn't exists, it is created with reservation.
-func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservation app.Reservation) (*app.Reservation, error) {
+func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservation bikerental.Reservation) (*bikerental.Reservation, error) {
 	if err := r.checkReservationData(reservation); err != nil {
 		return nil, err
 	}
@@ -137,10 +138,10 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 }
 
 // CancelReservation sets reservation status to canceled.
-// Returns app.ErrNotFound if reservation doesn't exists.
+// Returns bikerental.ErrNotFound if reservation doesn't exists.
 func (r *ReservationsRepository) CancelReservation(ctx context.Context, bikeID string, id string) error {
 	sqlq := sqlBuilder.Update("reservations").
-		Set("status", app.ReservationStatusCanceled).
+		Set("status", bikerental.ReservationStatusCanceled).
 		Where(squirrel.Eq{"bike_id": bikeID}).
 		Where(squirrel.Eq{"id": "id"})
 	q, args, err := sqlq.ToSql()
@@ -166,7 +167,7 @@ func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx
 		Where(squirrel.Eq{"bike_id": bikeID}).
 		Where(squirrel.Gt{"end_time": startTime}).
 		Where(squirrel.Lt{"start_time": endTime}).
-		Where(squirrel.NotEq{"status": app.ReservationStatusCanceled})
+		Where(squirrel.NotEq{"status": bikerental.ReservationStatusCanceled})
 	q, args, err := sqlq.ToSql()
 	if err != nil {
 		return false, fmt.Errorf("building sql query: %w", err)
@@ -189,7 +190,7 @@ func (r *ReservationsRepository) checkAvailability(ctx context.Context, tx *sqlx
 	return true, nil
 }
 
-func (r *ReservationsRepository) checkReservationData(reservation app.Reservation) error {
+func (r *ReservationsRepository) checkReservationData(reservation bikerental.Reservation) error {
 	if reservation.ID == "" {
 		return errors.New("reservation id is empty")
 	}
@@ -202,7 +203,7 @@ func (r *ReservationsRepository) checkReservationData(reservation app.Reservatio
 	return nil
 }
 
-func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx.Tx, reservation app.Reservation) error {
+func (r *ReservationsRepository) createReservation(ctx context.Context, tx *sqlx.Tx, reservation bikerental.Reservation) error {
 	sqlq := sqlBuilder.
 		Insert("reservations").
 		Columns("id", "status", "bike_id", "customer_id", "start_time", "end_time", "total_value", "applied_discount").
@@ -257,7 +258,7 @@ type reservationModel struct {
 	PricePerHour float64 `db:"price_per_h"`
 }
 
-func newReservationModel(ar app.Reservation) reservationModel {
+func newReservationModel(ar bikerental.Reservation) reservationModel {
 	return reservationModel{
 		ID:              ar.ID,
 		Status:          string(ar.Status),
@@ -270,7 +271,7 @@ func newReservationModel(ar app.Reservation) reservationModel {
 	}
 }
 
-func (m *reservationModel) ToAppReservation() app.Reservation {
+func (m *reservationModel) ToAppReservation() bikerental.Reservation {
 	cm := customerModel{
 		ID:        m.CustomerID,
 		Type:      m.Type,
@@ -284,9 +285,9 @@ func (m *reservationModel) ToAppReservation() app.Reservation {
 		Weight:       m.Weight,
 		PricePerHour: m.PricePerHour,
 	}
-	return app.Reservation{
+	return bikerental.Reservation{
 		ID:              m.ID,
-		Status:          app.ReservationStatus(m.Status),
+		Status:          bikerental.ReservationStatus(m.Status),
 		Customer:        cm.ToAppCustomer(),
 		Bike:            bm.ToAppBike(),
 		StartTime:       m.StartTime,

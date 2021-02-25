@@ -5,7 +5,7 @@ package discount
 import (
 	"math"
 
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 )
 
 // newBikeWeightDiscount returns discount for individual customers based on reservation value and bike weight.
@@ -13,12 +13,12 @@ import (
 // - individual customers only
 // - bike weight >= 15kg
 // - maximum discount is 20% of reservation value
-func newBikeWeightDiscount(resValue float64, customer app.Customer, bike app.Bike) app.Discount {
-	if customer.Type != app.CustomerTypeIndividual {
-		return app.Discount{}
+func newBikeWeightDiscount(resValue float64, customer bikerental.Customer, bike bikerental.Bike) bikerental.Discount {
+	if customer.Type != bikerental.CustomerTypeIndividual {
+		return bikerental.Discount{}
 	}
 	if bike.Weight < 15 {
-		return app.Discount{}
+		return bikerental.Discount{}
 	}
 
 	discountPercent := bike.Weight - 15.0
@@ -26,7 +26,7 @@ func newBikeWeightDiscount(resValue float64, customer app.Customer, bike app.Bik
 		discountPercent = 20
 	}
 
-	return app.Discount{
+	return bikerental.Discount{
 		Amount: resValue * (discountPercent / 100.0),
 	}
 }
@@ -35,15 +35,15 @@ func newBikeWeightDiscount(resValue float64, customer app.Customer, bike app.Bik
 // Disount rules:
 // - individual customers only
 // - low outsie temperature
-func newTemperatureDiscount(resValue float64, customer app.Customer, weather *app.Weather) app.Discount {
-	if customer.Type != app.CustomerTypeIndividual {
-		return app.Discount{}
+func newTemperatureDiscount(resValue float64, customer bikerental.Customer, weather *bikerental.Weather) bikerental.Discount {
+	if customer.Type != bikerental.CustomerTypeIndividual {
+		return bikerental.Discount{}
 	}
 	if weather == nil || weather.Temperature >= 10 {
-		return app.Discount{}
+		return bikerental.Discount{}
 	}
 
-	return app.Discount{
+	return bikerental.Discount{
 		Amount: resValue * 0.05,
 	}
 }
@@ -52,13 +52,13 @@ func newTemperatureDiscount(resValue float64, customer app.Customer, weather *ap
 // Disount rules:
 // - individual customers only
 // - incidents in neighborhood present.
-func newIncidentsDiscount(resValue float64, customer app.Customer, incidents *app.BikeIncidentsInfo) app.Discount {
-	if customer.Type != app.CustomerTypeIndividual {
-		return app.Discount{}
+func newIncidentsDiscount(resValue float64, customer bikerental.Customer, incidents *bikerental.BikeIncidentsInfo) bikerental.Discount {
+	if customer.Type != bikerental.CustomerTypeIndividual {
+		return bikerental.Discount{}
 	}
 
 	if incidents == nil || incidents.NumberOfIncidents < 3 {
-		return app.Discount{}
+		return bikerental.Discount{}
 	}
 
 	discountPercent := 0.0
@@ -67,7 +67,7 @@ func newIncidentsDiscount(resValue float64, customer app.Customer, incidents *ap
 	} else {
 		discountPercent += 5.0
 	}
-	return app.Discount{
+	return bikerental.Discount{
 		Amount: resValue * (discountPercent / 100.0),
 	}
 }
@@ -75,9 +75,9 @@ func newIncidentsDiscount(resValue float64, customer app.Customer, incidents *ap
 // selectOptimalDiscount chooses one discount that should be applied.
 // Rules:
 // - select discount with greatest value.
-func selectOptimalDiscount(discounts ...app.Discount) app.Discount {
+func selectOptimalDiscount(discounts ...bikerental.Discount) bikerental.Discount {
 	minAmount := math.MaxFloat64
-	var result app.Discount
+	var result bikerental.Discount
 	for _, d := range discounts {
 		if d.Amount < minAmount {
 			result = d

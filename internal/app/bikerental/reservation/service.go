@@ -8,20 +8,21 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 )
 
 // Service provides methods for making reservations.
 type Service struct {
-	discountService  app.DiscountService
-	bikeService      app.BikeService
+	discountService  bikerental.DiscountService
+	bikeService      bikerental.BikeService
 	reservationsRepo Repository
 	customersRepo    CustomerRepository
 }
 
 // NewService creates new service instance.
 func NewService(
-	discountService app.DiscountService,
-	bikeService app.BikeService,
+	discountService bikerental.DiscountService,
+	bikeService bikerental.BikeService,
 	reservationsRepo Repository,
 	customersRepo CustomerRepository,
 ) (*Service, error) {
@@ -64,7 +65,7 @@ func (s *Service) GetBikeAvailability(ctx context.Context, bikeID string, startT
 		BikeID:    bikeID,
 		StartTime: startTime,
 		EndTime:   endTime,
-		Status:    app.ReservationStatusApproved,
+		Status:    bikerental.ReservationStatusApproved,
 		Limit:     1,
 	})
 	if err != nil {
@@ -77,7 +78,7 @@ func (s *Service) GetBikeAvailability(ctx context.Context, bikeID string, startT
 }
 
 // ListReservations returns list of reservations matching request criteria.
-func (s *Service) ListReservations(ctx context.Context, req app.ListReservationsRequest) ([]app.Reservation, error) {
+func (s *Service) ListReservations(ctx context.Context, req bikerental.ListReservationsRequest) ([]bikerental.Reservation, error) {
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}
@@ -96,7 +97,7 @@ func (s *Service) ListReservations(ctx context.Context, req app.ListReservations
 // CreateReservation creates new reservation if possible.
 // If creating reservation is not possible due to business logic or availability issues, this method returns valid response.
 // If there are errors while processing request, returns nil and an error.
-func (s *Service) CreateReservation(ctx context.Context, req app.CreateReservationRequest) (*app.ReservationResponse, error) {
+func (s *Service) CreateReservation(ctx context.Context, req bikerental.CreateReservationRequest) (*bikerental.ReservationResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}
@@ -106,8 +107,8 @@ func (s *Service) CreateReservation(ctx context.Context, req app.CreateReservati
 	bike, err := s.fetchRealBike(ctx, req.BikeID)
 	if err != nil {
 		if app.IsNotFoundError(err) {
-			return &app.ReservationResponse{
-				Status: app.ReservationStatusRejected,
+			return &bikerental.ReservationResponse{
+				Status: bikerental.ReservationStatusRejected,
 				Reason: fmt.Sprintf("bike with id '%s' does not exists", req.BikeID),
 			}, nil
 		}
@@ -123,7 +124,7 @@ func (s *Service) CreateReservation(ctx context.Context, req app.CreateReservati
 
 	value := s.calculateReservationValue(*bike, req.StartTime, req.EndTime)
 
-	discountResp, err := s.discountService.CalculateDiscount(ctx, app.DiscountRequest{
+	discountResp, err := s.discountService.CalculateDiscount(ctx, bikerental.DiscountRequest{
 		Customer:         customer,
 		Location:         req.Location,
 		Bike:             *bike,
@@ -133,10 +134,10 @@ func (s *Service) CreateReservation(ctx context.Context, req app.CreateReservati
 		return nil, fmt.Errorf("checking available discounts: %w", err)
 	}
 
-	// We expect repository to return app.ConflictError if reservation for that bike in that time range already exists.
-	reservation, err := s.reservationsRepo.CreateReservation(ctx, app.Reservation{
+	// We expect repository to return bikerental.ConflictError if reservation for that bike in that time range already exists.
+	reservation, err := s.reservationsRepo.CreateReservation(ctx, bikerental.Reservation{
 		ID:              uuid.New().String(),
-		Status:          app.ReservationStatusApproved,
+		Status:          bikerental.ReservationStatusApproved,
 		Customer:        req.Customer,
 		Bike:            *bike,
 		StartTime:       req.StartTime,
@@ -146,8 +147,8 @@ func (s *Service) CreateReservation(ctx context.Context, req app.CreateReservati
 	})
 	if err != nil {
 		if app.IsConflictError(err) {
-			return &app.ReservationResponse{
-				Status: app.ReservationStatusRejected,
+			return &bikerental.ReservationResponse{
+				Status: bikerental.ReservationStatusRejected,
 				Reason: "bike not available in requested time range",
 			}, nil
 		}
@@ -155,14 +156,14 @@ func (s *Service) CreateReservation(ctx context.Context, req app.CreateReservati
 		return nil, fmt.Errorf("creating reservation in repository: %w", err)
 	}
 
-	return &app.ReservationResponse{
+	return &bikerental.ReservationResponse{
 		Status:      reservation.Status,
 		Reservation: reservation,
 	}, nil
 }
 
 // CancelReservation removes reservation by id and bike id.
-// Returns app.ErrNotFound if reservation doesn't exists.
+// Returns bikerental.ErrNotFound if reservation doesn't exists.
 func (s *Service) CancelReservation(ctx context.Context, bikeID string, id string) error {
 	if err := s.reservationsRepo.CancelReservation(ctx, bikeID, id); err != nil {
 		return fmt.Errorf("canceling reservation in repository: %w", err)
@@ -170,7 +171,7 @@ func (s *Service) CancelReservation(ctx context.Context, bikeID string, id strin
 	return nil
 }
 
-func (s *Service) fetchRealBike(ctx context.Context, bikeID string) (*app.Bike, error) {
+func (s *Service) fetchRealBike(ctx context.Context, bikeID string) (*bikerental.Bike, error) {
 	if bikeID == "" {
 		return nil, errors.New("empty bike id")
 	}
@@ -182,7 +183,7 @@ func (s *Service) fetchRealBike(ctx context.Context, bikeID string) (*app.Bike, 
 	return existingBike, nil
 }
 
-func (s *Service) updateCustomerData(ctx context.Context, customer app.Customer) (app.Customer, error) {
+func (s *Service) updateCustomerData(ctx context.Context, customer bikerental.Customer) (bikerental.Customer, error) {
 	if customer.ID == "" {
 		return customer, nil
 	}
@@ -194,6 +195,6 @@ func (s *Service) updateCustomerData(ctx context.Context, customer app.Customer)
 	return *existingCustomer, nil
 }
 
-func (s *Service) calculateReservationValue(bike app.Bike, from, to time.Time) float64 {
+func (s *Service) calculateReservationValue(bike bikerental.Bike, from, to time.Time) float64 {
 	return bike.PricePerHour * to.Sub(from).Hours()
 }

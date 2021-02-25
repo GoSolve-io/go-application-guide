@@ -63,7 +63,11 @@ The goal of this guide is to explain all the important parts of typical go proje
 Later in this guide we'll also explain some problems common to go projects (logging, caching, metrics, terminating goroutines, etc).
 This guide will hopefully be useful for experienced programmers switching from other languages.
 
-The structure of code presented in this repository is designed to be flexible to use in various project. The idea is that you can copy it, replace some application logic, customize adapters (explained later), and then you have new project with familiar structure and (hopefully) good design.  
+The structure of code presented in this repository is designed to be flexible to use in various project. The idea is that you can copy it, replace some application logic, customize adapters (explained later), and then you have new project with familiar structure and (hopefully) good design.
+
+But there's one caveat: remember that this example application is overengineered. It's done on purpose, to show some concepts. In real life, similar application you can merge some packages for simplicity.
+
+TODO: Point here to the chapter about simplification.
 
 ### Will this example application always work for me?
 
@@ -92,13 +96,13 @@ You will find multiple `readme.md` files in go packages. They contain explanatio
 
 Requirements for our example service are described in separate document.
 
-[Business requirements](/docs/businessrequirements/requirements.md)
+[Business requirements](/docs/businessrequirements/REQUIREMENTS.md)
 
 ### Design
 
 Design for our example project is described in separate document. Please read it first before browsing any code.
 
-[System design documentation](/docs/systemdesign/systemdesign.md)
+[System design documentation](/docs/systemdesign/SYSTEMDESIGN.md)
 
 ### Project structure 
 
@@ -117,6 +121,8 @@ TODO
 ## Writing application in go
 
 ### Package layout
+
+[Package layout documentation](/docs/packages/PACKAGES.md)
 
 TODO
 

@@ -1,8 +1,10 @@
-package app
+package bikerental
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/nglogic/go-example-project/internal/app"
 )
 
 // Discount represents fixed discount for bike rental.
@@ -32,15 +34,15 @@ func (r DiscountRequest) Validate() error {
 	}
 
 	if r.Location.Lat == 0 || r.Location.Long == 0 {
-		return NewValidationError("invalid location")
+		return app.NewValidationError("invalid location")
 	}
 
 	if r.ReservationValue == 0 {
-		return NewValidationError("empty reservation value")
+		return app.NewValidationError("empty reservation value")
 	}
 
 	if r.Bike.Weight == 0.0 {
-		return NewValidationError("empty bike weight")
+		return app.NewValidationError("empty bike weight")
 	}
 
 	return nil

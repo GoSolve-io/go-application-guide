@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/nglogic/go-example-project/internal/adapter/http"
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 )
 
 const (
@@ -49,7 +49,7 @@ func NewAdapter(address string, timeout time.Duration, httpDoer http.Doer) (*Ada
 
 // GetIncidents return number of bike incidents in a location.
 // Maximum returned value will be `maxIncidents`.
-func (a *Adapter) GetIncidents(ctx context.Context, req app.BikeIncidentsRequest) (*app.BikeIncidentsInfo, error) {
+func (a *Adapter) GetIncidents(ctx context.Context, req bikerental.BikeIncidentsRequest) (*bikerental.BikeIncidentsInfo, error) {
 	urlVal := fmt.Sprintf("%s/v2/locations", a.address)
 	query := url.Values{
 		"proximity": []string{
@@ -72,7 +72,7 @@ func (a *Adapter) GetIncidents(ctx context.Context, req app.BikeIncidentsRequest
 		return nil, fmt.Errorf("fetching data from bikewise: %w", err)
 	}
 
-	return &app.BikeIncidentsInfo{
+	return &bikerental.BikeIncidentsInfo{
 		Location:          req.Location,
 		Proximity:         req.Proximity,
 		NumberOfIncidents: len(resp.Features),

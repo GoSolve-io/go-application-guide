@@ -1,15 +1,15 @@
 package grpc
 
 import (
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-example-project/internal/app/bikerental"
 	"github.com/nglogic/go-example-project/pkg/api/bikerentalv1"
 )
 
-func newAppBikeFromRequest(rb *bikerentalv1.Bike) *app.Bike {
+func newAppBikeFromRequest(rb *bikerentalv1.Bike) *bikerental.Bike {
 	if rb == nil {
 		return nil
 	}
-	return &app.Bike{
+	return &bikerental.Bike{
 		ID:           rb.Id,
 		ModelName:    rb.ModelName,
 		Weight:       float64(rb.Weight),
@@ -17,20 +17,20 @@ func newAppBikeFromRequest(rb *bikerentalv1.Bike) *app.Bike {
 	}
 }
 
-func newAppCustomerFromRequest(rc *bikerentalv1.Customer) *app.Customer {
+func newAppCustomerFromRequest(rc *bikerentalv1.Customer) *bikerental.Customer {
 	if rc == nil {
 		return nil
 	}
 
-	var ct app.CustomerType
+	var ct bikerental.CustomerType
 	switch rc.Type {
 	case bikerentalv1.CustomerType_CUSTOMER_TYPE_INDIVIDUAL:
-		ct = app.CustomerTypeIndividual
+		ct = bikerental.CustomerTypeIndividual
 	case bikerentalv1.CustomerType_CUSTOMER_TYPE_BUSINESS:
-		ct = app.CustomerTypeBuisiness
+		ct = bikerental.CustomerTypeBuisiness
 	}
 
-	return &app.Customer{
+	return &bikerental.Customer{
 		ID:        rc.Id,
 		Type:      ct,
 		FirstName: rc.FirstName,
@@ -39,12 +39,12 @@ func newAppCustomerFromRequest(rc *bikerentalv1.Customer) *app.Customer {
 	}
 }
 
-func newAppLocationFromRequest(rl *bikerentalv1.Location) *app.Location {
+func newAppLocationFromRequest(rl *bikerentalv1.Location) *bikerental.Location {
 	if rl == nil {
 		return nil
 	}
 
-	return &app.Location{
+	return &bikerental.Location{
 		Lat:  float64(rl.Lat),
 		Long: float64(rl.Long),
 	}
