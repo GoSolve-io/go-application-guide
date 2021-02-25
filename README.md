@@ -202,7 +202,10 @@ TODO
 #### Error handling
 
 TODO
+
 https://blog.golang.org/go1.13-errors
+
+Nice talk: https://www.youtube.com/watch?v=IKoSsJFdRtI
 
 #### Context
 
