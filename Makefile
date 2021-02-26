@@ -28,17 +28,14 @@ proto:
 		apiprotoc \
 		-I api/proto \
 		--proto_path=/app/ \
-		--go_out=plugins=grpc:/app/api/ \
-		--grpc-gateway_out=logtostderr=true:/app/api \
-		--openapiv2_out api/openapi \
-		--openapiv2_opt logtostderr=true \
-		--openapiv2_opt openapi_configuration=api/openapi/nglogic/bikerental/v1/service.swagger.config.yaml \
+		--go_out=plugins=grpc:. \
+		--go_opt=module=github.com/nglogic/go-example-project \
+		--grpc-gateway_out=logtostderr=true:/app \
+		--grpc-gateway_opt=module=github.com/nglogic/go-example-project \
+		--openapiv2_out=api/openapi \
+		--openapiv2_opt=logtostderr=true \
+		--openapiv2_opt=openapi_configuration=api/openapi/nglogic/bikerental/v1/service.swagger.config.yaml \
 		api/proto/nglogic/bikerental/v1/service.proto
-
-	# Move generated package to proper path.
-	rm -rf ./pkg/api/*
-	cp -rf ./api/github.com/nglogic/go-example-project/pkg/api/* ./pkg/api/
-	rm -rf ./api/github.com
 
 
 check-golangcilint-bin:
