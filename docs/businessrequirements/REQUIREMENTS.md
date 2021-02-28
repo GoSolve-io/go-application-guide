@@ -1,7 +1,7 @@
 
 # Business requirements
 
-Build and API for bike rental service.
+Build an API for bike rental service.
 
 1. Manage bikes
     1. Add bikes
@@ -25,11 +25,11 @@ Build and API for bike rental service.
         - rental location coordinates,
 
         API returns:
-        - On success: full reservation information with it's unique id, applied discount amount.
-        - On failure: reason of failure (i.e. bike is not available at this time range).
-        1. API should calculate discount for reservation. rules for discount described later in specs.
-    3. List all reservations for a bike in given time range. 
-       1. Reservation list should include cancelled ones too.
+        - On success: full reservation information with its unique id and applied discount amount.
+        - On failure: reason of failure (i.e., bike is not available at this time range).
+        1. API should calculate the discount for a reservation. Rules for discounting are described later in the specs.
+    3. List all reservations for a bike in a given time range.
+       1. Reservation list should include canceled ones too.
     4. Cancel reservation
        1. Don't delete data!
     5. Check possible discount
@@ -49,17 +49,17 @@ Build and API for bike rental service.
         1. Discount on bike weight
             If bike weight >= 15kg, apply 1% discount on each additional kg up to 20%
         2. Discount on weather conditions
-            If temperature at rental location is less than 10C, apply 5% discount.
-        3. discount on number of bike incidents in rental location neighborhood
-            If there are 3-4 incidents around rental location, apply 5% discount.
-            If there are 5 or more incidents around rental location, apply 10% discount.
+            If the temperature at a rental location is less than 10C, apply a 5% discount.
+        3. discount on the number of bike incidents in a rental location neighborhood
+            If there are 3-4 incidents around a rental location, apply a 5% discount.
+            If there are 5 or more incidents around a rental location, apply a 10% discount.
     2. Discounts for business customers
-        1. Discount on reservation value
-            If reservation value is >= 100€, apply 5% discount
-        2. Discount on reservation time
-            If reservation time is >= 24h, apply 15% discount
+        1. Discount on the reservation value
+            If the reservation value is >= 100€, apply a 5% discount
+        2. Discount on the reservation time
+            If the reservation time is >= 24h, apply a 15% discount
     3. Combining discounts
-        If customer applies to more than 1 discount, choose only one with highest value.
+        If a customer applies to more than 1 discount, choose only one with the highest value.
 4. Authentication/Authorization (optional, smaller priority)
    1. Simple authentication (TODO: specify)
    2. No special authorization.
