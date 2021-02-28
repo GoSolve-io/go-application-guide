@@ -13,8 +13,6 @@ Table of contents
   - [Business requirements and initial design](#business-requirements-and-initial-design)
   - [Guide to Go application design](#guide-to-go-application-design)
   - [Guide to writing Go packages hierarchy](#guide-to-writing-go-packages-hierarchy)
-    - [Guide to Go packaging](#guide-to-go-packaging)
-    - [Packages in example app](#packages-in-example-app)
   - [Testing](#testing)
     - [Unit tests](#unit-tests)
     - [Integration tests](#integration-tests)
@@ -103,15 +101,13 @@ Let's start with explanation of example project, that will be used to talk about
 
 ## Guide to Go application design
 
-The design for our example project is described in a separate document. Please read it first before browsing any code.
-
-[App design documentation](/docs/appdesign/DESIGN.md)
+[Guide to Go application design](/docs/appdesign/DESIGN.md)
 
 ## Guide to writing Go packages hierarchy
 
-### [Guide to Go packaging](/docs/packages/PACKAGES.md)
+[Guide to Go packaging](/docs/packages/PACKAGES.md)
 
-### [Packages in example app](/docs/packages/APP.PACKAGES.md)
+[Packages in example app](/docs/packages/APP.PACKAGES.md)
 
 ## Testing
 
