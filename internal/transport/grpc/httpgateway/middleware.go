@@ -1,6 +1,7 @@
 package httpgateway
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -8,9 +9,16 @@ import (
 )
 
 // HandlerWithTraceID wraps handler with middleware generating trace id for each request.
+// If trace id is present in headers, it will be preserved. We try to discover incoming trace ids based on w3 standard:
+// https://www.w3.org/TR/trace-context/#trace-context-http-headers-format
 func HandlerWithTraceID(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := app.CtxWithTraceID(r.Context(), uuid.NewString())
+		traceID := r.Header.Get("trace-id")
+		if traceID == "" {
+			traceID = fmt.Sprintf("%x", uuid.New())
+		}
+
+		ctx := app.CtxWithTraceID(r.Context(), traceID)
 		r = r.WithContext(ctx)
 		h.ServeHTTP(w, r)
 	})
