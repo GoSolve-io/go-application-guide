@@ -63,3 +63,24 @@ Build an API for bike rental service.
 4. Authentication/Authorization (optional, smaller priority)
    1. Simple authentication (TODO: specify)
    2. No special authorization.
+
+# Initial design
+
+## System context
+
+Our system is supposed to be used by some other tenant system. For simplicity, we assume that they'll work together on the same infrastructure deployed together. Overall context looks like this:
+
+![System context](systemcontext.svg)
+
+## High-level components
+
+Our system needs to do few things:
+
+1. Manage bikes data
+2. Manage reservations data
+3. Get weather data (from the external system!)
+4. Get bike incidents data (from the external system!)
+
+Bike and reservations data is our internal system state. Overview of high-level components looks like this:
+
+![Containers](containers.svg)

@@ -1,29 +1,10 @@
-# System design
+# Application design
 
-To fully understand this design, you should take a look at [business requirements](/docs/businessrequirements/requirements.md). If you haven't already, please do it first.
-
-## System context
-
-Our system is supposed to be used by some other tenant system. For simplicity, we assume that they'll work together on the same infrastructure deployed together. Overall context looks like this:
-
-![System context](systemcontext.svg)
-
-## High-level components
-
-Our system needs to do few things:
-
-1. Manage bikes data
-2. Manage reservations data
-3. Get weather data (from the external system!)
-4. Get bike incidents data (from the external system!)
-
-Bike and reservations data is our internal system state. Overview of high-level components looks like this:
-
-![Containers](containers.svg)
+For starters we'll identify key components in our example app. Then we'll try to find some common patterns in typical backend applications and create our final design.
 
 ## Components breakdown
 
-We want to identify some components crucial for implementing system functionality. Some important things to note here:
+Some important things we want to achieve:
 
 1. We want to organize business logic into smaller "domain chunks".
 
@@ -41,10 +22,12 @@ The breakdown into concrete components looks like this:
 
 ![Components](components.svg)
 
+This is actually quite common type of service. We accept some requests, do some internal processing, fetch or store some data in external database/API, and then return a response to the request. If this is so common, maybe there's a proven way to create that type of services?
 
 ## Enter "Explicit Architecture"
 
-The reason why components were split the way they were should be clearer when you start thinking about the application as a system interacting with the outside world. There are parts that receive requests. These are transmitted by network using various formats, and they have to be decoded, so our application could understand them. There are also other systems that our application has to interact with. It involves creating specific requests, encoding them, and sending them through the network. But you might agree that encoding some specific request, creating TCP connection, and handling network traffic is not something that we should mix with calculating discounts for our customers. To summarize: we should allow our core application logic to communicate with the outside world in the simplest possible way. And then we should abstract the details to someplace else. This diagram from Herberto Graça's blog will help you understand the concept:
+Think about the application as a system interacting with the outside world. There is a part that receive requests. These are transmitted by network using various formats, and they have to be decoded, so our application could understand them. There are also other systems that our application has to interact with. It involves creating specific requests, encoding them, and sending them through the network. And there's also the "core" - the part that knows what to do with incoming requests. 
+You might agree that encoding some specific request, creating TCP connection, and handling network traffic is not something that we should mix with calculating discounts for our customers. We should allow our "core" to communicate with the outside world in the simplest possible way. And then we should abstract the details of that communication to someplace else. This diagram from Herberto Graça's blog will help you understand the concept:
  
 ![Explicit architecture - Herberto Graça](explicit-architecture-hgraca.png)
 
@@ -76,6 +59,6 @@ If you have abstracted the details of using external systems, you can easily div
 
 The way your app is used might change. Maybe you're exposing REST API now, and it's fine. But what if frontend guys want GraphQL? Or maybe your API requires authentication, but the business people want you to expose some of the resources with public access?
 
-With explicit architecture it is never a problem. You can add a new "primary adapter" for each of mentioned cases, and it won't affect a byte in core application logic and won't break any existing tests.
+With explicit architecture it's never a problem. You can add a new "primary adapter" for each of mentioned cases, and it won't affect a byte in core application logic and won't break any existing tests.
 
 ### TODO: there's more for sure :)

@@ -9,26 +9,25 @@ Table of contents
     - [Guide goal](#guide-goal)
     - [Will this example application always work for me?](#will-this-example-application-always-work-for-me)
     - [How to read this repository](#how-to-read-this-repository)
-  - [Example project](#example-project)
-    - [Business requirements](#business-requirements)
-    - [Design](#design)
-    - [Project structure](#project-structure)
-  - [Typical backend service design](#typical-backend-service-design)
-  - [Writing application in go](#writing-application-in-go)
-    - [Package layout](#package-layout)
-    - [Testing](#testing)
-      - [Unit tests](#unit-tests)
-      - [Integration tests](#integration-tests)
-    - [Common functionalities in backend services](#common-functionalities-in-backend-services)
-      - [Logging](#logging)
-      - [Caching](#caching)
-      - [Instrumentation](#instrumentation)
-    - [Other high-level concepts of go programming](#other-high-level-concepts-of-go-programming)
-      - [Style and linters. Optimize for reading, not for writing](#style-and-linters-optimize-for-reading-not-for-writing)
-      - [Error handling](#error-handling)
-      - [Context](#context)
-      - [Overusing language features](#overusing-language-features)
-      - [Always optimize code for better performance!](#always-optimize-code-for-better-performance)
+    - [Repository structure](#repository-structure)
+  - [Business requirements and initial design](#business-requirements-and-initial-design)
+  - [Guide to Go application design](#guide-to-go-application-design)
+  - [Guide to writing Go packages hierarchy](#guide-to-writing-go-packages-hierarchy)
+    - [Guide to Go packaging](#guide-to-go-packaging)
+    - [Packages in example app](#packages-in-example-app)
+  - [Testing](#testing)
+    - [Unit tests](#unit-tests)
+    - [Integration tests](#integration-tests)
+  - [Common functionalities in backend services](#common-functionalities-in-backend-services)
+    - [Logging](#logging)
+    - [Caching](#caching)
+    - [Instrumentation](#instrumentation)
+  - [Other high-level concepts of go programming](#other-high-level-concepts-of-go-programming)
+    - [Style and linters. Optimize for reading, not for writing](#style-and-linters-optimize-for-reading-not-for-writing)
+    - [Error handling](#error-handling)
+    - [Context](#context)
+    - [Overusing language features](#overusing-language-features)
+    - [Always optimize code for better performance!](#always-optimize-code-for-better-performance)
   - [Links to other guides](#links-to-other-guides)
     - [High abstraction level](#high-abstraction-level)
     - [Medium abstraction level](#medium-abstraction-level)
@@ -90,65 +89,42 @@ Start with this README file. Read it up to the chapter explaining example projec
 
 You'll find multiple `README.md` files in this repository. They contain explanations for some concepts in code. We recommend you to check them as well!
 
-## Example project
+### Repository structure
 
-### [Business requirements](/docs/businessrequirements/REQUIREMENTS.md)
+This repository's structure closely follows [github.com/golang-standards/project-layout](https://github.com/golang-standards/project-layout) guide for organizing project in top-level directories. I strongly suggest using it in your project. It has few advanages:
 
-### Design
+- It's well known and broadly accepted standard in Go community.
+- When you join a project following this guide, you can instantly feel familiar with the repository.
+- On the other hand, when someone's joining your team, there's a high chance he knows this guide and will be more confident and productive faster.
+
+## Business requirements and initial design
+
+Let's start with explanation of example project, that will be used to talk about other important stuff here. Have a look at the [business requirements and initial design](/docs/businessrequirements/REQUIREMENTS.md) for our demo app.
+
+## Guide to Go application design
 
 The design for our example project is described in a separate document. Please read it first before browsing any code.
 
-[System design documentation](/docs/systemdesign/SYSTEMDESIGN.md)
+[App design documentation](/docs/appdesign/DESIGN.md)
 
-### Project structure
+## Guide to writing Go packages hierarchy
 
-TODO, mention https://github.com/golang-standards/project-layout
+### [Guide to Go packaging](/docs/packages/PACKAGES.md)
 
-## Typical backend service design
+### [Packages in example app](/docs/packages/APP.PACKAGES.md)
 
-TODO
+## Testing
 
-1. Break down of typical backend service
-2. Intro to clean architecture
-   1. https://herbertograca.com/2017/07/03/the-software-architecture-chronicles/ - we build on this!
-3. Typical backend service organized in layers
-4. Architecture for the example project
+TODO: **need help here, open for any discussion**
 
-## Writing application in go
-
-### Package layout
-
-[Package layout documentation](/docs/packages/PACKAGES.md)
-
-TODO
-
-1. What is a package? (not a directory!)
-2. Problem with circular dependencies
-3. Package hierarchy explained using go standard library (example: `net` to `net/http`, `crypto` to `crypto/md5`, `encoding` to `encoding/json` etc.)
-   1. Explain packages as layers (`http` builds on top of `net`!)
-      1. Important `net` can never import its child packages! Explain why.
-   2. How it solves the problem with circular dependencies?
-4. Example project packages breakdown (package layers diagram)
-   1. Diagram with all packages stacked on top of each other
-      1. Show dependency direction
-      2. Show control flow direction
-5. Sources
-   1. https://www.gobeyond.dev/standard-package-layout/
-   2. ...and continuation: https://www.gobeyond.dev/packages-as-layers/
-
-
-### Testing
-
-TODO: **need help here!**
-
-#### Unit tests
+### Unit tests
 
 TODO
 
 1. When
 2. How
 
-#### Integration tests
+### Integration tests
 
 TODO
 
@@ -156,9 +132,9 @@ TODO
 2. When
 3. How
 
-### Common functionalities in backend services
+## Common functionalities in backend services
 
-#### Logging
+### Logging
 
 TODO
 
@@ -180,29 +156,29 @@ TODO
    3. Put log together into stories using trace id
       1. Later in microservice architecture - distributed transaction ids
 
-#### Caching
+### Caching
 
 TODO
 
 1. App or adapters? App, of course! Explain why.
 2. How adding cache affects application logic (hint: it doesn't!)
 
-#### Instrumentation
+### Instrumentation
 
 TODO
 
 1. How it relates to app layers (similar to logging)
 
 
-### Other high-level concepts of go programming
+## Other high-level concepts of go programming
 
 TODO
 
-#### Style and linters. Optimize for reading, not for writing
+### Style and linters. Optimize for reading, not for writing
 
 TODO
 
-#### Error handling
+### Error handling
 
 TODO
 
@@ -210,18 +186,18 @@ https://blog.golang.org/go1.13-errors
 
 Nice talk: https://www.youtube.com/watch?v=IKoSsJFdRtI
 
-#### Context
+### Context
 
 TODO: Primarily for signaling end of execution to goroutines
 
-#### Overusing language features
+### Overusing language features
 
 TODO
 
 1. Channels: use mutex whenever it makes things simple
 2. Named returns: exception, not a rule
 
-#### Always optimize code for better performance!
+### Always optimize code for better performance!
 
 Just kidding, don't do that. Optimize for reading; care more about your coworkers than CPU cycles.
 
@@ -229,6 +205,7 @@ Just kidding, don't do that. Optimize for reading; care more about your coworker
 ## Links to other guides
 
 TODO: **need more links**
+TODO: How to make this section short and to the point? We don't want 100+ links here.
 
 ### High abstraction level
 
