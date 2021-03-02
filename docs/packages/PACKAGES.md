@@ -2,7 +2,7 @@
 
 ## Problem with cyclic dependencies
 
-In every language that has something like a package, and one of the packages depends on another, there's always a possibility of having a cyclic dependency. Cyclic dependency occurs when `Package A` want's to use some features of `Package B`, but `Package B` also wants some features from `Package A`. Some languages (Python, NodeJS) allow cyclic imports and let the programmer live with the consequences :) And there are a few<sup>[1](#footnote1)</sup>:
+In every language that has something like a package, and one of the packages depends on another, there's always a possibility of having a cyclic dependency. Cyclic dependency occurs when `Package A` wants to use some features of `Package B`, but `Package B` also wants some features from `Package A`. Some languages (Python, NodeJS) allow cyclic imports and let the programmer live with the consequences :) And there are a few<sup>[1](#footnote1)</sup>:
 
 - Circular dependencies can cause many unwanted effects in software programs. Most problematic from a software design point of view is the tight coupling of the mutually dependent modules, which reduces or makes impossible the separate re-use of a single module.
 - Circular dependencies can cause a domino effect when a small local change in one module spreads into other modules and has unwanted global effects (program errors, compile errors). Circular dependencies can also result in infinite recursions or other unexpected failures.
@@ -12,14 +12,14 @@ Go language is strict about that: the compiler will forbid you to add cyclic imp
 
 ## A package isn't a directory
 
-A common misconception about organizing packages in Go results from treating the package like a directory. Sometimes these "directories" are used to put together a bunch of things with a common name, like "models" or "validators". But this approach will bite you eventually. Sooner or later this will lead to a cyclic dependency problem. And the usual solution is to create another package, like "utils". This "fix" will work for some time, but later another conflict will force you to create another "extracted" package. And finally, you'll end up with a project with accidental structure.
+A common misconception about organizing packages in Go results from treating the package like a directory. Sometimes these "directories" are used to put together a bunch of things with a common name, like "models" or "validators". But this approach will bite you eventually. Sooner or later, this will lead to a cyclic dependency problem. And the usual solution is to create another package, like "utils". This "fix" will work for some time, but later another conflict will force you to create another "extracted" package. And finally, you'll end up with a project with accidental structure.
 
-The solution is actually simple. A package is not a group. It's a layer!
+The solution is actually simple. A package is not a group. It's a layer! We'll discuss how we can split our code into logical layers in the next part of this document.
 
 I recommend you [this](https://www.gobeyond.dev/standard-package-layout/) and [this](https://www.gobeyond.dev/packages-as-layers/) articles from Ben Johnson's blog, explaining the concept. But for now, let's move on.
 
 
-## How go standard library does it?
+## How go standard library organizes packages?
 
 Let's cover some packages from go's standard library. How do Go core developers organize packages that are related?
 
