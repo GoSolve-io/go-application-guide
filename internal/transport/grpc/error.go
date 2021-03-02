@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app"
 	"google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 )

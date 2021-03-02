@@ -5,7 +5,7 @@ package discount
 import (
 	"math"
 
-	"github.com/nglogic/go-example-project/internal/app/bikerental"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 )
 
 // newBikeWeightDiscount returns discount for individual customers based on reservation value and bike weight.

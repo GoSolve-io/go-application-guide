@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/sirupsen/logrus"
 )
 

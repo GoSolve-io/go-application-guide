@@ -9,7 +9,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/nglogic/go-example-project/pkg/api/bikerentalv1;bikerentalv1";
+option go_package = "github.com/nglogic/go-application-guide/pkg/api/bikerentalv1;bikerentalv1";
 
 service BikeRentalService {
     // List all bikes.

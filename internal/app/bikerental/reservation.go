@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app"
 )
 
 // ReservationStatus describes reservation status.

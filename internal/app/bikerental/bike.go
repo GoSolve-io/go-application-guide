@@ -3,7 +3,7 @@ package bikerental
 import (
 	"context"
 
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app"
 )
 
 // Bike represents a bike for rent.

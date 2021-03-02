@@ -29,14 +29,13 @@ proto:
 		-I api/proto \
 		--proto_path=/app/ \
 		--go_out=plugins=grpc:. \
-		--go_opt=module=github.com/nglogic/go-example-project \
+		--go_opt=module=github.com/nglogic/go-application-guide \
 		--grpc-gateway_out=logtostderr=true:/app \
-		--grpc-gateway_opt=module=github.com/nglogic/go-example-project \
+		--grpc-gateway_opt=module=github.com/nglogic/go-application-guide \
 		--openapiv2_out=api/openapi \
 		--openapiv2_opt=logtostderr=true \
 		--openapiv2_opt=openapi_configuration=api/openapi/nglogic/bikerental/v1/service.swagger.config.yaml \
 		api/proto/nglogic/bikerental/v1/service.proto
-
 
 check-golangcilint-bin:
 ifeq (, $(shell which golangci-lint))

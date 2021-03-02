@@ -9,8 +9,8 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/nglogic/go-example-project/internal/app"
-	"github.com/nglogic/go-example-project/internal/app/bikerental"
+	"github.com/nglogic/go-application-guide/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 	"github.com/sirupsen/logrus"
 )
 

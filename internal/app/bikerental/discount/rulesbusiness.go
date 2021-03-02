@@ -3,7 +3,7 @@ package discount
 // This file contains all business rules for calculating discounts.
 
 import (
-	"github.com/nglogic/go-example-project/internal/app/bikerental"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 )
 
 // newBusinessCustomerDiscount returns discounts for business customers.

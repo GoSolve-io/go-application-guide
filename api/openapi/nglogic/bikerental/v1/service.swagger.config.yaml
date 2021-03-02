@@ -30,6 +30,6 @@ openapiOptions:
               ApiKeyAuth: {}
         externalDocs:
           description: More about this project
-          url: https://github.com/nglogic/go-example-project
+          url: https://github.com/nglogic/go-application-guide
 
   

@@ -3,7 +3,7 @@ package bikes
 import (
 	"context"
 
-	"github.com/nglogic/go-example-project/internal/app/bikerental"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 )
 
 // Repository can manage bike data.

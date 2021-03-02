@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	ahttp "github.com/nglogic/go-example-project/internal/adapter/http"
-	"github.com/nglogic/go-example-project/internal/app/bikerental"
+	ahttp "github.com/nglogic/go-application-guide/internal/adapter/http"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 )
 
 // Adapter uses metaweather service for providing weather data.

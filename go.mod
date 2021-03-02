@@ -1,4 +1,4 @@
-module github.com/nglogic/go-example-project
+module github.com/nglogic/go-application-guide
 
 go 1.15
 

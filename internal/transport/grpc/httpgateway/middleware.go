@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app"
 )
 
 // HandlerWithTraceID wraps handler with middleware generating trace id for each request.

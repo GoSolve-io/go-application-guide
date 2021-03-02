@@ -1,4 +1,4 @@
-# Go developers incomplete guide to writing typical backend service ![Build](https://github.com/nglogic/go-example-project/workflows/Build/badge.svg)
+# Go developers incomplete guide to writing typical backend service ![Build](https://github.com/nglogic/go-application-guide/workflows/Build/badge.svg)
 
 
 Table of contents

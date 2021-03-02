@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/badoux/checkmail"
-	"github.com/nglogic/go-example-project/internal/app"
+	"github.com/nglogic/go-application-guide/internal/app"
 )
 
 // CustomerType represents customer type.

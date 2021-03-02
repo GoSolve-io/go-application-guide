@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	"github.com/nglogic/go-example-project/internal/app/bikerental"
-	"github.com/nglogic/go-example-project/pkg/api/bikerentalv1"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental"
+	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"
 )
 
 func newAppBikeFromRequest(rb *bikerentalv1.Bike) *bikerental.Bike {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/nglogic/go-example-project/pkg/api/bikerentalv1"
+	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"
 	"github.com/sirupsen/logrus"
 )
 

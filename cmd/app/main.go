@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nglogic/go-example-project/internal/adapter/database"
-	"github.com/nglogic/go-example-project/internal/adapter/http/incidents"
-	"github.com/nglogic/go-example-project/internal/adapter/http/weather"
-	"github.com/nglogic/go-example-project/internal/app/bikerental/bikes"
-	"github.com/nglogic/go-example-project/internal/app/bikerental/discount"
-	"github.com/nglogic/go-example-project/internal/app/bikerental/reservation"
-	"github.com/nglogic/go-example-project/internal/transport/grpc"
-	"github.com/nglogic/go-example-project/internal/transport/grpc/httpgateway"
+	"github.com/nglogic/go-application-guide/internal/adapter/database"
+	"github.com/nglogic/go-application-guide/internal/adapter/http/incidents"
+	"github.com/nglogic/go-application-guide/internal/adapter/http/weather"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental/bikes"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental/discount"
+	"github.com/nglogic/go-application-guide/internal/app/bikerental/reservation"
+	"github.com/nglogic/go-application-guide/internal/transport/grpc"
+	"github.com/nglogic/go-application-guide/internal/transport/grpc/httpgateway"
 	"github.com/sirupsen/logrus"
 )
 
