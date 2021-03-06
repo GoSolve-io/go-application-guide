@@ -14,23 +14,26 @@ Go language is strict about that: the compiler will forbid you to add cyclic imp
 
 A common misconception about organizing packages in Go results from treating the package like a directory. Sometimes these "directories" are used to put together a bunch of things with a common name, like "models" or "validators". But this approach will bite you eventually. Sooner or later, this will lead to a cyclic dependency problem. And the usual solution is to create another package, like "utils". This "fix" will work for some time, but later another conflict will force you to create another "extracted" package. And finally, you'll end up with a project with accidental structure.
 
-The solution is actually simple. A package is not a group. It's a layer! We'll discuss how we can split our code into logical layers in the next part of this document.
+You can think of a package more as a "box" that provides some functionality. It exposes that functionality by its interface and hides implementation details. If the package has dependencies on other packages in your project, there has to be clear relation between them.
 
-I recommend you [this](https://www.gobeyond.dev/standard-package-layout/) and [this](https://www.gobeyond.dev/packages-as-layers/) articles from Ben Johnson's blog, explaining the concept. But for now, let's move on.
-
-
-## How go standard library organizes packages?
+## How Go standard library organizes packages?
 
 Let's cover some packages from go's standard library. How do Go core developers organize packages that are related?
 
 We can identify key patterns for package organization common in Go source code:
 
-1. Some packages "build" on their parent. Parent package with lower abstraction code + child package with higher abstraction code (`net/http` => `net`).
-2. Some packages closely related are grouped together (`text/template`, `text/scanner` => `text`).
-3. Some packages depend on other packages within the same "group" (`image/jpeg` imports `image/color`).
-4. Some packages depend on other packages outside of their "part of a tree" (`image/jpeg` imports `io`).
+1. Vertical dependency.
+   Packages that "build" on their parent. Parent package with higher abstraction code + child package with lower abstraction code (`net/http` => `net`).
+2. Functional groups. 
+   Packages closely related are grouped together (`text/template`, `text/scanner` => `text`). Parent package is just an aggregator; it doesn't provide any functionality.
+3. Horizontal dependency.
+   Packages depend on other packages within the same "group" (`image/jpeg` imports `image/color`).
+4. External dependency.
+   Packages depend on other packages outside of their "part of a tree" (`image/jpeg` imports `io`).
 
 Go's standard library also has one crucial feature. Packages never import their children<sup>[2](#footnote2)</sup>. This property is the key to have cyclic free package imports!
+
+### Vertical dependency
 
 I find the first point the most interesting. Take a look at the `net/http` package. The core problem solved here is to "provide a portable interface for network I/O, including TCP/IP, UDP, domain name resolution, and Unix domain sockets" (quote from the Go's docs). So `net/http` package defines multiple types and functions that allow you to communicate using HTTP protocol. But this package has to abstract all the connection details away. It has to operate at a higher level of abstraction, using types like `Listener`, `Conn`, `Dialer`. So it "sits" on top of a package that defines these types: `net`. Take a note that all other packages in the standard library that build on those network types also "sit" on top of the `net` package (`net/mail`, `net/smtp`, e.t.c.). So to summarize: `net` provides a layer that abstracts base network communication, and `net/*` sub-packages use that layer to build their specialized layers for communication using higher-level protocols. This approach beautifully reflects the network layering (`net` is a transport layer, `net/http` is an application layer).
 
@@ -42,12 +45,36 @@ Other similar examples are:
 - `image/jpeg` packages build on `image`. Here we have also "horizontal" dependency: it imports `image/color`!
 - `encoding/json` package builds on `encoding`. This example is a bit more subtle, though. The `encoding/json` doesn't import `encoding` directly but rather implements its interfaces.
 
+The main idea here is this: **If you have multiple functionalities depending on a common abstraction, implement the abstraction layer in the parent package, and build functionalities on top of it in sub-packages**.
 
-## Key takeaways
+### Functional groups
+
+This point is very similar to the previous one. The difference is that there's no common abstraction, or abstraction is logical but doesn't need any code.
+
+### Horizontal dependency
+
+Packages `image/color` and `image/jpeg` provide good example here. Both are independent and provide some set of functionalities related to image processing (they're stacked on `image`). But `image/color` is closer to image abstraction. It works as an extra building block for other sub-packages in `image`. The key is to have a clear dependency direction between them. 
+
+### External dependency
+
+This point is very similar to "horizontal dependency". The difference here is that external dependencies aren't closely related to the functionality of the "current package branch". They provide some abstraction for the things we use in the current package, like error handling, or io operations.
+
+## Organizing packages in your application
+
+The package structure in an application is a bit different than in a library. The first thing I propose is creating explicit logical layers for application core, primary and secondary adapters.
+
+The solution is actually simple. A package is not a group. It's a layer! We'll discuss how we can split our code into logical layers in the next part of this document.
+
+
+## Summary
 
 1. Organize packages by their function. Following SRP, a package has to have one functionality to provide.
-2. If you have 2 or more packages that rely on a common base, organize packages layer-like: `base`, `base/package1`, `base/package2`. Remove dependencies beetween them by abstracting common types to `base` layer.
+2. If you have 2 or more packages that rely on a common base, organize packages layer-like: `base`, `base/package1`, `base/package2`. Remove dependencies between them by abstracting common types to `base` layer.
 3. The "deeper" the package, the more specialized it should be.
+
+
+I recommend you [this](https://www.gobeyond.dev/standard-package-layout/) and [this](https://www.gobeyond.dev/packages-as-layers/) articles from Ben Johnson's blog, explaining the concept. But for now, let's move on.
+
 
 ---
 
