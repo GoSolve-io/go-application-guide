@@ -1,7 +1,6 @@
 # Package Layout in the example application
 
-This document builds on [guide to Go packaging](/docs/packages/PACKAGES.md) and [guide to Go app design](/docs/appdesign/DESIGN.md).
-
+*This document builds on [guide to Go packaging](/docs/packages/PACKAGES.md) and [guide to Go app design](/docs/appdesign/DESIGN.md).*
 
 The package structure in an application is a bit different than in libraries. Libraries provide a relatively simple interface for some functionality. In an application we have to:
 
@@ -9,8 +8,13 @@ The package structure in an application is a bit different than in libraries. Li
 - implement a way for that service to use external APIs and databases,
 - implement an API that exposes that service through the network,
 
-And, on top of that, we have to compile it to the executable file. 
-The first thing I propose is separating all 3 points into their logical layers.
+And, on top of that, we have to compile it to the executable file.
+
+In the example application we're proposing package layout, that addresses few problems:
+
+1. Distinguish 3 main layers from "explicit architecture"
+2. Have a repeatable repository structure. If we're building multiple applications, we want to have some degree of familiarity between them.
+3. Organize packages in a logical way that prevents cyclic imports
 
 ## Breakdown of example app's packages
 
@@ -64,16 +68,26 @@ Note that in the example app we use 2 REST APIs, so we have 2 adapters:
 
 There's the parent package for them `internal/adapter/http`. It provides a simple way to use REST API. Child packages can build on this simpler abstraction and don't have to deal with HTTP communication details, like building requests, closing response body, decoding responses, etc.
 
-## Diagram of the packages working together
+## The packages working together
+
+Here's a visualization of all non-test packages working together. Each package has a description of its responsibility.
 
 ![Packages breakdown](apppackages.svg)
+
+Take a look at another diagram with arrows showing imports between packages. 
+
+![Package imports](apppackagesdeps.svg)
+
+Note the direction: always down and always towards `app`! 
+
+`app` is the core application logic layer, so any package is free to import it. It's important that it doesn't know anything about our business domain or adapters. It's actually the other way around: business logic code and adapters can use some of the tools from `app`, common to whole application.
+
+`bikerental` and its children are the core domain layer. So all of the packages (except for `app`) can import them.
+
+`transport` and its children expose the application to the world. So it can use some of the common tools from `app`, and also has to know about the domain. So it can import "central column". But it should never care about how our communicates with outside world! So imports from `adapter` is forbidden here.
+
+`adapter` provides means of communication with databases and APIs. It has to import our `app` and domain packages to know how to "adapt" to app interfaces. And similar to previous paragraph, it should never care about how the data adapters provide will be exposed to the world. So import of `transport` is forbidden here.
 
 ## External sources
 
 I recommend you [this](https://www.gobeyond.dev/standard-package-layout/) and [this](https://www.gobeyond.dev/packages-as-layers/) articles from Ben Johnson's blog. He describes similar concepts that I think are more suited for small applications. But it's definitely worth reading!
-
-
-TODO: Finish this doc.
-
-- Show dependency direction
-- Show control flow direction

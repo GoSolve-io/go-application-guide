@@ -1,6 +1,6 @@
 # Application design
 
-For starters we'll identify key components in our example app. Then we'll try to find some common patterns in typical backend applications and create our final design.
+For starters, we'll identify key components in our example app. Then we'll try to find some common patterns in typical backend applications and create our final design.
 
 ## Components breakdown
 
@@ -22,12 +22,12 @@ The breakdown into concrete components looks like this:
 
 ![Components](components.svg)
 
-This is actually quite common type of service. We accept some requests, do some internal processing, fetch or store some data in external database/API, and then return a response to the request. If this is so common, maybe there's a proven way to create that type of services?
+What we described here is actually a quite common type of service. We accept some requests, do some internal processing, fetch or store some data in an external database/API, and then return a response to the request. If this is so common, maybe there's a proven way to construct that type of service?
 
 ## Enter "Explicit Architecture"
 
-Think about the application as a system interacting with the outside world. There is a part that receive requests. These are transmitted by network using various formats, and they have to be decoded, so our application could understand them. There are also other systems that our application has to interact with. It involves creating specific requests, encoding them, and sending them through the network. And there's also the "core" - the part that knows what to do with incoming requests. 
-You might agree that encoding some specific request, creating TCP connection, and handling network traffic is not something that we should mix with calculating discounts for our customers. We should allow our "core" to communicate with the outside world in the simplest possible way. And then we should abstract the details of that communication to someplace else. This diagram from Herberto Graça's blog will help you understand the concept:
+Think about the application as a system interacting with the outside world. There is a part that receives requests. These are transmitted by network using various formats, and they have to be decoded, so our application could understand them. There are also other systems that our application has to interact with. It involves creating specific requests, encoding them, and sending them through the network. And there's also the "core" - the part that knows what to do with incoming requests. 
+You might agree that encoding some specific requests, creating TCP connections, and handling network traffic is not something that we should mix with calculating discounts for our customers. We should allow our "core" to communicate with the outside world in the simplest possible way. And then we should abstract the details of that communication to someplace else. This diagram from Herberto Graça's blog will help you understand the concept:
  
 ![Explicit architecture - Herberto Graça](explicit-architecture-hgraca.png)
 

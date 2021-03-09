@@ -23,8 +23,8 @@ Let's cover some packages from go's standard library. How do Go core developers 
 We can identify key patterns for package organization common in Go source code:
 
 1. Vertical dependency.
-   Packages that "build" on their parent. Parent package with higher abstraction code + child package with lower abstraction code (`net/http` => `net`).
-2. Functional groups. 
+   Packages that "build" on their parent. Parent package with higher abstraction code + child package with lower abstraction code (`net/http` => `net`). Child packages depend on parents.
+2. Functional groups.
    Packages closely related are grouped together (`text/template`, `text/scanner` => `text`). Parent package is just an aggregator; it doesn't provide any functionality.
 3. Horizontal dependency.
    Packages depend on other packages within the same "group" (`image/jpeg` imports `image/color`).
@@ -35,7 +35,7 @@ Go's standard library also has one crucial feature. Packages never import their 
 
 ### Vertical dependency
 
-I find the first point the most interesting. Take a look at the `net/http` package. The core problem solved here is to "provide a portable interface for network I/O, including TCP/IP, UDP, domain name resolution, and Unix domain sockets" (quote from the Go's docs). So `net/http` package defines multiple types and functions that allow you to communicate using HTTP protocol. But this package has to abstract all the connection details away. It has to operate at a higher level of abstraction, using types like `Listener`, `Conn`, `Dialer`. So it "sits" on top of a package that defines these types: `net`. Take a note that all other packages in the standard library that build on those network types also "sit" on top of the `net` package (`net/mail`, `net/smtp`, e.t.c.). So to summarize: `net` provides a layer that abstracts base network communication, and `net/*` sub-packages use that layer to build their specialized layers for communication using higher-level protocols. This approach beautifully reflects the network layering (`net` is a transport layer, `net/http` is an application layer).
+I find the first point the most interesting. Take a look at the `net/http` package. The core problem solved here is to "provide a portable interface for network I/O, including TCP/IP, UDP, domain name resolution, and Unix domain sockets" (quote from the Go's docs). So `net/http` package defines multiple types and functions that allow you to communicate using HTTP protocol. But this package doesn't care about all the connection details. It has to operate at a higher level of abstraction, using types like `Listener`, `Conn`, `Dialer`. So it "sits" on top of a package that defines these types: `net`. Take a note that all other packages in the standard library that build on those network types also "sit" on top of the `net` package (`net/mail`, `net/smtp`, e.t.c.). So to summarize: `net` provides a layer that abstracts base network communication, and `net/*` sub-packages use that layer to build their specialized layers for communication using higher-level protocols. This approach beautifully reflects the network layering (`net` is a transport layer, `net/http` is an application layer).
 
 Other similar examples are:
 
@@ -57,18 +57,11 @@ Packages `image/color` and `image/jpeg` provide good example here. Both are inde
 
 ### External dependency
 
-This point is very similar to "horizontal dependency". The difference here is that external dependencies aren't closely related to the functionality of the "current package branch". They provide some abstraction for the things we use in the current package, like error handling, or io operations.
-
-## Organizing packages in your application
-
-The package structure in an application is a bit different than in a library. The first thing I propose is creating explicit logical layers for application core, primary and secondary adapters.
-
-The solution is actually simple. A package is not a group. It's a layer! We'll discuss how we can split our code into logical layers in the next part of this document.
-
+This point is a bit similar to "horizontal dependency". The difference is that external dependencies aren't closely related to the functionality of the "current package branch". They provide some abstraction for the things we use in the current package, like error handling or io operations.
 
 ## Summary
 
-1. Organize packages by their function. Following SRP, a package has to have one functionality to provide.
+1. Organize packages by their function. Following SRP, a package has to provide one specific functionality.
 2. If you have 2 or more packages that rely on a common base, organize packages layer-like: `base`, `base/package1`, `base/package2`. Remove dependencies between them by abstracting common types to `base` layer.
 3. The "deeper" the package, the more specialized it should be.
 
