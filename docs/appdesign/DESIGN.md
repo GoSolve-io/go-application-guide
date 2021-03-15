@@ -61,4 +61,8 @@ The way your app is used might change. Maybe you're exposing REST API now, and i
 
 With explicit architecture it's never a problem. You can add a new "primary adapter" for each of mentioned cases, and it won't affect a byte in core application logic and won't break any existing tests.
 
+### Easier and faster automatic testing
+
+Automatic tests of the business logic can be implemented without any dependencies on external modules or 3rd party services and without executing a lot of code. This enables much faster commit-compile-test cycles and allows developers to receive immediate feedback if their changes to business logic causes any undesired regressions.
+
 ### TODO: there's more for sure :)
