@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"time"
 
 	"github.com/nglogic/go-application-guide/internal/adapter/database"
@@ -17,6 +17,7 @@ import (
 	"github.com/nglogic/go-application-guide/internal/transport/grpc"
 	"github.com/nglogic/go-application-guide/internal/transport/grpc/httpgateway"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -90,27 +91,20 @@ func main() {
 		cancel()
 	}()
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := httpgateway.RunServer(ctx, log, srv, conf.HTTPServerAddr)
-		cancel()
-		if err != nil {
-			log.Errorf("http server: %v", err)
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		if err := httpgateway.RunServer(ctx, log, srv, conf.HTTPServerAddr); err != nil {
+			return fmt.Errorf("http server: %v", err)
 		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err = grpc.RunServer(ctx, log, srv, conf.GRPCServerAddr)
-		cancel()
-		if err != nil {
-			log.Errorf("grpc server: %v", err)
+		return nil
+	})
+	g.Go(func() error {
+		if err = grpc.RunServer(ctx, log, srv, conf.GRPCServerAddr); err != nil {
+			return fmt.Errorf("grpc server: %v", err)
 		}
-	}()
-
-	wg.Wait()
+		return nil
+	})
+	if err := g.Wait(); err != nil {
+		log.Error(err)
+	}
 }
