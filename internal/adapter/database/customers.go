@@ -3,11 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
@@ -23,10 +21,6 @@ type CustomersRepository struct {
 // GetInTx returns a customer by id using existing transaction.
 // If customer doesn't exists, returns bikerental.ErrNotFound error.
 func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id string) (*bikerental.Customer, error) {
-	if id == "" {
-		return nil, errors.New("id is empty")
-	}
-
 	var m customerModel
 	if err := tx.GetContext(ctx, &m, `select * from customers where id = $1`, id); err != nil {
 		if err == sql.ErrNoRows {
@@ -53,11 +47,7 @@ func (r *CustomersRepository) Get(ctx context.Context, id string) (*bikerental.C
 }
 
 // AddInTx creates new customer in db using existing db transaction.
-func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c bikerental.Customer) (id string, err error) {
-	if c.ID == "" {
-		c.ID = uuid.NewString()
-	}
-
+func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c bikerental.Customer) error {
 	sqlq := sqlBuilder.Insert("customers").
 		Columns("id", "type", "first_name", "surname", "email").
 		Values(
@@ -69,16 +59,16 @@ func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c bikere
 		)
 	q, _, err := sqlq.ToSql()
 	if err != nil {
-		return "", fmt.Errorf("building sql query: %w", err)
+		return fmt.Errorf("building sql query: %w", err)
 	}
 
 	if _, err = tx.NamedExecContext(ctx, q, newCustmerModel(c)); err != nil {
-		return "", fmt.Errorf("inserting customer row into postgres: %w", err)
+		return fmt.Errorf("inserting customer row into postgres: %w", err)
 	}
 
 	app.AugmentLogFromCtx(ctx, r.log).WithField("id", c.ID).Info("customer created in db")
 
-	return c.ID, nil
+	return nil
 }
 
 type customerModel struct {

@@ -3,11 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
@@ -36,10 +34,6 @@ func (r *BikesRepository) List(ctx context.Context) ([]bikerental.Bike, error) {
 
 // Get returns a bike by id. If it doesn't exists, returns bikerental.ErrNotFound error.
 func (r *BikesRepository) Get(ctx context.Context, id string) (*bikerental.Bike, error) {
-	if id == "" {
-		return nil, errors.New("id is empty")
-	}
-
 	var b bikeModel
 	if err := r.db.GetContext(ctx, &b, "select * from bikes where id=$1", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -53,11 +47,7 @@ func (r *BikesRepository) Get(ctx context.Context, id string) (*bikerental.Bike,
 }
 
 // Add creates new bike in db.
-func (r *BikesRepository) Add(ctx context.Context, b bikerental.Bike) (id string, err error) {
-	if b.ID == "" {
-		b.ID = uuid.NewString()
-	}
-
+func (r *BikesRepository) Add(ctx context.Context, b bikerental.Bike) error {
 	sqlq := sqlBuilder.Insert("bikes").
 		Columns("id", "model_name", "weight", "price_per_h").
 		Values(
@@ -68,24 +58,20 @@ func (r *BikesRepository) Add(ctx context.Context, b bikerental.Bike) (id string
 		)
 	q, _, err := sqlq.ToSql()
 	if err != nil {
-		return "", fmt.Errorf("building sql query: %w", err)
+		return fmt.Errorf("building sql query: %w", err)
 	}
 
 	if _, err = r.db.NamedExecContext(ctx, q, newBikeModel(b)); err != nil {
-		return "", fmt.Errorf("inserting bike row into postgres: %w", err)
+		return fmt.Errorf("inserting bike row into postgres: %w", err)
 	}
 
 	app.AugmentLogFromCtx(ctx, r.log).WithField("id", b.ID).Info("bike created in db")
 
-	return b.ID, nil
+	return nil
 }
 
 // Update updates a bike in db by id. If bike is not in db, returns bikerental.ErrNotFound error.
 func (r *BikesRepository) Update(ctx context.Context, id string, b bikerental.Bike) error {
-	if id == "" {
-		return fmt.Errorf("id is empty")
-	}
-
 	sqlq := sqlBuilder.Update("bikes").
 		Set("model_name", squirrel.Expr(":model_name")).
 		Set("weight", squirrel.Expr(":weight")).
@@ -112,10 +98,6 @@ func (r *BikesRepository) Update(ctx context.Context, id string, b bikerental.Bi
 
 // Delete deletes a bike from db by id. If bike is not in db, returns bikerental.ErrNotFound error.
 func (r *BikesRepository) Delete(ctx context.Context, id string) error {
-	if id == "" {
-		return errors.New("id is empty")
-	}
-
 	res, err := r.db.ExecContext(ctx, `delete from bikes where id=$1`, id)
 	if err != nil {
 		return fmt.Errorf("deleting bike row from postgres: %w", err)

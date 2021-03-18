@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 )
@@ -52,11 +53,10 @@ func (s *Service) Add(ctx context.Context, b bikerental.Bike) (*bikerental.Bike,
 		return nil, fmt.Errorf("invalid bike data: %w", err)
 	}
 
-	id, err := s.repository.Add(ctx, b)
-	if err != nil {
+	b.ID = uuid.NewString()
+	if err := s.repository.Add(ctx, b); err != nil {
 		return nil, fmt.Errorf("adding bike to repository: %w", err)
 	}
-	b.ID = id
 
 	return &b, nil
 }

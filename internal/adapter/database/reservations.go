@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
@@ -119,11 +120,10 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 		}
 		reservation.Customer = *customer
 	} else {
-		id, err := r.parent.Customers().AddInTx(ctx, tx, reservation.Customer)
-		if err != nil {
+		reservation.Customer.ID = uuid.NewString()
+		if err := r.parent.Customers().AddInTx(ctx, tx, reservation.Customer); err != nil {
 			return nil, fmt.Errorf("creating customer: %w", err)
 		}
-		reservation.Customer.ID = id
 	}
 
 	if err := r.createReservation(ctx, tx, reservation); err != nil {
