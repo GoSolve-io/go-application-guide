@@ -9,8 +9,8 @@ import (
 
 // Discount represents fixed discount for bike rental.
 type Discount struct {
-	// Amount is in euros, we wont deal with currencies in decimals here for simplicity.
-	Amount float64
+	// Amount is in eurocents.
+	Amount int
 	Reason string
 }
 
@@ -21,10 +21,11 @@ type DiscountService interface {
 
 // DiscountRequest is a request for determining a discount for a bike rental.
 type DiscountRequest struct {
-	Customer         Customer
-	Location         Location
-	Bike             Bike
-	ReservationValue float64
+	Customer Customer
+	Location Location
+	Bike     Bike
+	// ReservationValue in eurocents.
+	ReservationValue int
 }
 
 // Validate validates the request.

@@ -425,8 +425,8 @@
           "format": "float"
         },
         "pricePerHour": {
-          "type": "number",
-          "format": "float"
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -549,12 +549,12 @@
           "format": "date-time"
         },
         "totalValue": {
-          "type": "number",
-          "format": "float"
+          "type": "integer",
+          "format": "int32"
         },
         "appliedDiscount": {
-          "type": "number",
-          "format": "float"
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

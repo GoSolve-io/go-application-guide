@@ -25,7 +25,7 @@ func newResponseBike(b *bikerental.Bike) *bikerentalv1.Bike {
 		Id:           b.ID,
 		ModelName:    b.ModelName,
 		Weight:       float32(b.Weight),
-		PricePerHour: float32(b.PricePerHour),
+		PricePerHour: int32(b.PricePerHour),
 	}
 }
 
@@ -52,8 +52,8 @@ func newResponseReservation(r *bikerental.Reservation) *bikerentalv1.Reservation
 		Bike:            newResponseBike(&r.Bike),
 		StartTime:       timestamppb.New(r.StartTime),
 		EndTime:         timestamppb.New(r.EndTime),
-		TotalValue:      float32(r.TotalValue),
-		AppliedDiscount: float32(r.AppliedDiscount),
+		TotalValue:      int32(r.TotalValue),
+		AppliedDiscount: int32(r.AppliedDiscount),
 	}
 }
 

@@ -81,7 +81,7 @@ message Bike {
     string id = 1;
     string modelName = 2; 
     float weight = 3;
-    float pricePerHour = 4;
+    int32 pricePerHour = 4;
 }
 
 enum CustomerType {
@@ -112,8 +112,8 @@ message Reservation {
     Bike bike = 4;
     google.protobuf.Timestamp start_time = 5;
     google.protobuf.Timestamp end_time = 6;
-    float totalValue = 7;
-    float appliedDiscount = 8;
+    int32 totalValue = 7;
+    int32 appliedDiscount = 8;
 }
 
 message Location {

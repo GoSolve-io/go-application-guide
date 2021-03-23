@@ -13,7 +13,7 @@ func newAppBikeFromRequest(rb *bikerentalv1.Bike) *bikerental.Bike {
 		ID:           rb.Id,
 		ModelName:    rb.ModelName,
 		Weight:       float64(rb.Weight),
-		PricePerHour: float64(rb.PricePerHour),
+		PricePerHour: int(rb.PricePerHour),
 	}
 }
 

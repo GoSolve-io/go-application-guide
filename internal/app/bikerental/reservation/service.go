@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -195,6 +196,8 @@ func (s *Service) updateCustomerData(ctx context.Context, customer bikerental.Cu
 	return *existingCustomer, nil
 }
 
-func (s *Service) calculateReservationValue(bike bikerental.Bike, from, to time.Time) float64 {
-	return bike.PricePerHour * to.Sub(from).Hours()
+func (s *Service) calculateReservationValue(bike bikerental.Bike, from, to time.Time) int {
+	return int(math.Round(
+		float64(bike.PricePerHour) * to.Sub(from).Hours(),
+	))
 }

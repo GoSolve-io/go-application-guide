@@ -2,7 +2,7 @@ CREATE TABLE bikes (
 	id uuid NOT NULL,
 	model_name varchar NULL,
 	weight numeric NULL,
-	price_per_h numeric NULL,
+	price_per_h integer NULL,
 	CONSTRAINT bikes_pk PRIMARY KEY (id)
 );
 CREATE INDEX bikes_model_name_idx ON public.bikes USING btree (model_name);
@@ -33,8 +33,8 @@ CREATE TABLE reservations (
 	end_time timestamptz(0) NOT NULL,
 	bike_id uuid NOT NULL,
 	customer_id uuid NOT NULL,
-	total_value float4 NOT NULL,
-	applied_discount float4 NOT NULL,
+	total_value integer NOT NULL,
+	applied_discount integer NOT NULL,
 	CONSTRAINT reservations_pk PRIMARY KEY (id),
 	CONSTRAINT bikes_fk FOREIGN KEY (bike_id) REFERENCES bikes(id) ON UPDATE CASCADE ON DELETE RESTRICT,
 	CONSTRAINT reservations_fk FOREIGN KEY (customer_id) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE

@@ -29,11 +29,11 @@ type Reservation struct {
 	StartTime time.Time
 	EndTime   time.Time
 
-	// TotalValue is a total amount to pay by the customer.
-	TotalValue float64
+	// TotalValue is a total amount to pay by the customer in eurocents.
+	TotalValue int
 
-	// AppliedDiscount is amount of discount applied to total reservation value.
-	AppliedDiscount float64
+	// AppliedDiscount is amount of discount applied to total reservation value in eurocents.
+	AppliedDiscount int
 }
 
 // Validate validates reservation data.

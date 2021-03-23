@@ -8,10 +8,11 @@ import (
 
 // Bike represents a bike for rent.
 type Bike struct {
-	ID           string
-	ModelName    string
-	Weight       float64
-	PricePerHour float64
+	ID        string
+	ModelName string
+	Weight    float64
+	// PricePerHour in eurocents
+	PricePerHour int
 }
 
 // Validate validates bike data.

@@ -243,8 +243,8 @@ type reservationModel struct {
 	CustomerID      string    `db:"customer_id"`
 	StartTime       time.Time `db:"start_time"`
 	EndTime         time.Time `db:"end_time"`
-	TotalValue      float64   `db:"total_value"`
-	AppliedDiscount float64   `db:"applied_discount"`
+	TotalValue      int       `db:"total_value"`
+	AppliedDiscount int       `db:"applied_discount"`
 
 	// Join on customers
 	FirstName string `db:"first_name"`
@@ -255,7 +255,7 @@ type reservationModel struct {
 	// Join on bikes
 	ModelName    string  `db:"model_name"`
 	Weight       float64 `db:"weight"`
-	PricePerHour float64 `db:"price_per_h"`
+	PricePerHour int     `db:"price_per_h"`
 }
 
 func newReservationModel(ar bikerental.Reservation) reservationModel {

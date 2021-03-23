@@ -116,7 +116,7 @@ type bikeModel struct {
 	ID           string  `db:"id"`
 	ModelName    string  `db:"model_name"`
 	Weight       float64 `db:"weight"`
-	PricePerHour float64 `db:"price_per_h"`
+	PricePerHour int     `db:"price_per_h"`
 }
 
 func newBikeModel(ab bikerental.Bike) bikeModel {

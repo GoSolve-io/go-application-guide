@@ -13,7 +13,7 @@ import (
 // - individual customers only
 // - bike weight >= 15kg
 // - maximum discount is 20% of reservation value
-func newBikeWeightDiscount(resValue float64, customer bikerental.Customer, bike bikerental.Bike) bikerental.Discount {
+func newBikeWeightDiscount(resValue int, customer bikerental.Customer, bike bikerental.Bike) bikerental.Discount {
 	if customer.Type != bikerental.CustomerTypeIndividual {
 		return bikerental.Discount{}
 	}
@@ -27,7 +27,9 @@ func newBikeWeightDiscount(resValue float64, customer bikerental.Customer, bike 
 	}
 
 	return bikerental.Discount{
-		Amount: resValue * (discountPercent / 100.0),
+		Amount: int(math.Round(
+			(discountPercent / 100.0) * float64(resValue)),
+		),
 	}
 }
 
@@ -35,7 +37,7 @@ func newBikeWeightDiscount(resValue float64, customer bikerental.Customer, bike 
 // Disount rules:
 // - individual customers only
 // - low outsie temperature
-func newTemperatureDiscount(resValue float64, customer bikerental.Customer, weather *bikerental.Weather) bikerental.Discount {
+func newTemperatureDiscount(resValue int, customer bikerental.Customer, weather *bikerental.Weather) bikerental.Discount {
 	if customer.Type != bikerental.CustomerTypeIndividual {
 		return bikerental.Discount{}
 	}
@@ -44,7 +46,7 @@ func newTemperatureDiscount(resValue float64, customer bikerental.Customer, weat
 	}
 
 	return bikerental.Discount{
-		Amount: resValue * 0.05,
+		Amount: int(math.Round(float64(resValue) * 0.05)),
 	}
 }
 
@@ -52,7 +54,7 @@ func newTemperatureDiscount(resValue float64, customer bikerental.Customer, weat
 // Disount rules:
 // - individual customers only
 // - incidents in neighborhood present.
-func newIncidentsDiscount(resValue float64, customer bikerental.Customer, incidents *bikerental.BikeIncidentsInfo) bikerental.Discount {
+func newIncidentsDiscount(resValue int, customer bikerental.Customer, incidents *bikerental.BikeIncidentsInfo) bikerental.Discount {
 	if customer.Type != bikerental.CustomerTypeIndividual {
 		return bikerental.Discount{}
 	}
@@ -68,7 +70,9 @@ func newIncidentsDiscount(resValue float64, customer bikerental.Customer, incide
 		discountPercent += 5.0
 	}
 	return bikerental.Discount{
-		Amount: resValue * (discountPercent / 100.0),
+		Amount: int(math.Round(
+			float64(resValue) * (discountPercent / 100.0),
+		)),
 	}
 }
 
@@ -76,7 +80,7 @@ func newIncidentsDiscount(resValue float64, customer bikerental.Customer, incide
 // Rules:
 // - select discount with greatest value.
 func selectOptimalDiscount(discounts ...bikerental.Discount) bikerental.Discount {
-	minAmount := math.MaxFloat64
+	minAmount := math.MaxInt64
 	var result bikerental.Discount
 	for _, d := range discounts {
 		if d.Amount < minAmount {
