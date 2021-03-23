@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+// Bike rental service
+//
+// Service API exposes method for managing bikes and bike rental.
+package nglogic.bikerental.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/nglogic/go-application-guide/pkg/api/bikerentalv1;bikerentalv1";
+
+service BikeRentalService {
+    // List all bikes.
+    rpc ListBikes(google.protobuf.Empty) returns (ListBikesResponse) {
+        option (google.api.http) = {
+            get: "/v1/bikes"
+        };
+    };
+
+    // Return bike by id.
+    rpc GetBike(GetBikeRequest) returns (Bike) {
+        option (google.api.http) = {
+            get: "/v1/bikes/{id=*}"
+        };
+    };
+
+    // Create new bike.
+    //
+    // Returns created object with new id.
+    rpc CreateBike(CreateBikeRequest) returns (Bike) {
+        option (google.api.http) = {
+            post: "/v1/bikes"
+            body: "bike"
+        };
+    };
+
+    // Delete a bike by id.
+    rpc DeleteBike(DeleteBikeRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/bikes/{id=*}"
+        };
+    };
+
+    // Check if bike is available.
+    rpc GetBikeAvailability(GetBikeAvailabilityRequest) returns (GetBikeAvailabilityResponse) {
+        option (google.api.http) = {
+            get: "/v1/bikes/{bike_id=*}/availability"
+        };
+    };
+
+    // List reservations.
+    //
+    // Returns list of reservations for a bike.
+    rpc ListReservations(ListReservationsRequest) returns (ListReservationsResponse) {
+        option (google.api.http) = {
+            get: "/v1/bikes/{bike_id=*}/reservations"
+        };
+    };
+
+    // Create reservation.
+    //
+    // Returns created object with new id.
+    rpc CreateReservation(CreateReservationRequest) returns (CreateReservationResponse) {
+        option (google.api.http) = {
+            post: "/v1/bikes/{bike_id=*}/reservations"
+            body: "*"
+        };
+    };
+
+    // Cancel reservation.
+    rpc CancelReservation(CancelReservationRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/bikes/{bike_id=*}/reservations/{id=*}:cancel"
+        };
+    };
+}
+
+message Bike {
+    string id = 1;
+    string modelName = 2; 
+    float weight = 3;
+    int32 pricePerHour = 4;
+}
+
+enum CustomerType {
+    CUSTOMER_TYPE_UNKNOWN = 0;
+    CUSTOMER_TYPE_INDIVIDUAL = 1;
+    CUSTOMER_TYPE_BUSINESS = 2;
+}
+
+message Customer {
+    string id = 1;
+    CustomerType type = 2;
+    string first_name = 3;
+    string surname = 4;
+    string email = 5;
+}
+
+enum ReservationStatus {
+    RESERVATION_STATUS_UNKNOWN = 0;
+    RESERVATION_STATUS_REJECTED = 1;
+	RESERVATION_STATUS_APPROVED = 2;
+    RESERVATION_STATUS_CANCELLED = 3;
+}
+
+message Reservation {
+    string id = 1;
+    ReservationStatus status = 2;
+    Customer customer = 3;
+    Bike bike = 4;
+    google.protobuf.Timestamp start_time = 5;
+    google.protobuf.Timestamp end_time = 6;
+    int32 totalValue = 7;
+    int32 appliedDiscount = 8;
+}
+
+message Location {
+    float lat = 1;
+    float long = 2;
+}
+
+message ListBikesResponse {
+    repeated Bike bikes = 1;
+}
+
+message GetBikeRequest {
+    string id = 1;
+}
+
+message CreateBikeRequest {
+    Bike bike = 1;
+}
+
+message DeleteBikeRequest {
+    string id = 1;
+}
+
+message GetBikeAvailabilityRequest {
+    string bike_id = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+}
+
+message GetBikeAvailabilityResponse {
+    bool available = 1;
+}
+
+message CreateReservationRequest {
+    string bike_id = 1;
+    Customer customer = 2;
+    Location location = 3;
+    google.protobuf.Timestamp start_time = 4;
+    google.protobuf.Timestamp end_time = 5;
+}
+
+message CreateReservationResponse {
+    Reservation reservation = 1;
+    ReservationStatus status = 2;
+    string reason = 3;
+}
+
+message ListReservationsRequest {
+    string bike_id = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+}
+
+message ListReservationsResponse {
+    repeated Reservation reservations = 1;
+}
+
+message CancelReservationRequest {
+    string id = 1;
+    string bike_id = 2;
+}

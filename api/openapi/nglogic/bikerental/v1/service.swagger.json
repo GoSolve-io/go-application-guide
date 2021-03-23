@@ -1,0 +1,588 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Bike rental service",
+    "description": "Service API exposes method for managing bikes and bike rental.",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "BikeRentalService"
+    }
+  ],
+  "host": "localhost:8080",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/bikes": {
+      "get": {
+        "summary": "List all bikes.",
+        "operationId": "BikeRentalService_ListBikes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListBikesResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "BikeRentalService"
+        ]
+      },
+      "post": {
+        "summary": "Create new bike.",
+        "description": "Returns created object with new id.",
+        "operationId": "BikeRentalService_CreateBike",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Bike"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Bike"
+            }
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      }
+    },
+    "/v1/bikes/{bikeId}/availability": {
+      "get": {
+        "summary": "Check if bike is available.",
+        "operationId": "BikeRentalService_GetBikeAvailability",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetBikeAvailabilityResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bikeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      }
+    },
+    "/v1/bikes/{bikeId}/reservations": {
+      "get": {
+        "summary": "List reservations.",
+        "description": "Returns list of reservations for a bike.",
+        "operationId": "BikeRentalService_ListReservations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListReservationsResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bikeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      },
+      "post": {
+        "summary": "Create reservation.",
+        "description": "Returns created object with new id.",
+        "operationId": "BikeRentalService_CreateReservation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateReservationResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bikeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateReservationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      }
+    },
+    "/v1/bikes/{bikeId}/reservations/{id}:cancel": {
+      "post": {
+        "summary": "Cancel reservation.",
+        "operationId": "BikeRentalService_CancelReservation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "bikeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      }
+    },
+    "/v1/bikes/{id}": {
+      "get": {
+        "summary": "Return bike by id.",
+        "operationId": "BikeRentalService_GetBike",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Bike"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a bike by id.",
+        "operationId": "BikeRentalService_DeleteBike",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BikeRentalService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "bikerentalv1Location": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "format": "float"
+        },
+        "long": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Bike": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "modelName": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number",
+          "format": "float"
+        },
+        "pricePerHour": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1CreateReservationRequest": {
+      "type": "object",
+      "properties": {
+        "bikeId": {
+          "type": "string"
+        },
+        "customer": {
+          "$ref": "#/definitions/v1Customer"
+        },
+        "location": {
+          "$ref": "#/definitions/bikerentalv1Location"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1CreateReservationResponse": {
+      "type": "object",
+      "properties": {
+        "reservation": {
+          "$ref": "#/definitions/v1Reservation"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ReservationStatus"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Customer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1CustomerType"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CustomerType": {
+      "type": "string",
+      "enum": [
+        "CUSTOMER_TYPE_UNKNOWN",
+        "CUSTOMER_TYPE_INDIVIDUAL",
+        "CUSTOMER_TYPE_BUSINESS"
+      ],
+      "default": "CUSTOMER_TYPE_UNKNOWN"
+    },
+    "v1GetBikeAvailabilityResponse": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1ListBikesResponse": {
+      "type": "object",
+      "properties": {
+        "bikes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Bike"
+          }
+        }
+      }
+    },
+    "v1ListReservationsResponse": {
+      "type": "object",
+      "properties": {
+        "reservations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Reservation"
+          }
+        }
+      }
+    },
+    "v1Reservation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ReservationStatus"
+        },
+        "customer": {
+          "$ref": "#/definitions/v1Customer"
+        },
+        "bike": {
+          "$ref": "#/definitions/v1Bike"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "totalValue": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "appliedDiscount": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ReservationStatus": {
+      "type": "string",
+      "enum": [
+        "RESERVATION_STATUS_UNKNOWN",
+        "RESERVATION_STATUS_REJECTED",
+        "RESERVATION_STATUS_APPROVED",
+        "RESERVATION_STATUS_CANCELLED"
+      ],
+      "default": "RESERVATION_STATUS_UNKNOWN"
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "X-API-Key",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "externalDocs": {
+    "description": "More about this project",
+    "url": "https://github.com/nglogic/go-application-guide"
+  }
+}

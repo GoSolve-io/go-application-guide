@@ -1,0 +1,35 @@
+# This file contains additional swagger metadata.
+# For details see: https://github.com/grpc-ecosystem/grpc-gateway/blob/master/docs/docs/mapping/grpc_api_configuration.md
+
+openapiOptions:
+  file:
+    - file: "nglogic/bikerental/v1/service.proto"
+      option:
+        info:
+          version: "1.0"
+        schemes:
+          - HTTP
+        host: localhost:8080
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          "403":
+            description: Returned when the user does not have permission to access the resource.
+          "404":
+            description: Returned when the resource does not exist.
+        securityDefinitions:
+          security:
+            ApiKeyAuth:
+              type: TYPE_API_KEY
+              name: X-API-Key
+              in: IN_HEADER
+        security:
+          - securityRequirement:
+              ApiKeyAuth: {}
+        externalDocs:
+          description: More about this project
+          url: https://github.com/nglogic/go-application-guide
+
+  
