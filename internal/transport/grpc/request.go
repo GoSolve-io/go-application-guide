@@ -5,15 +5,11 @@ import (
 	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"
 )
 
-func newAppBikeFromRequest(rb *bikerentalv1.Bike) *bikerental.Bike {
-	if rb == nil {
-		return nil
-	}
+func newAppBikeFromRequestData(data *bikerentalv1.BikeData) *bikerental.Bike {
 	return &bikerental.Bike{
-		ID:           rb.Id,
-		ModelName:    rb.ModelName,
-		Weight:       float64(rb.Weight),
-		PricePerHour: int(rb.PricePerHour),
+		ModelName:    data.ModelName,
+		Weight:       float64(data.Weight),
+		PricePerHour: int(data.PricePerHour),
 	}
 }
 
@@ -22,20 +18,21 @@ func newAppCustomerFromRequest(rc *bikerentalv1.Customer) *bikerental.Customer {
 		return nil
 	}
 
-	var ct bikerental.CustomerType
-	switch rc.Type {
+	data := rc.GetData()
+	ct := bikerental.CustomerTypeUnknown
+	switch data.GetType() {
 	case bikerentalv1.CustomerType_CUSTOMER_TYPE_INDIVIDUAL:
 		ct = bikerental.CustomerTypeIndividual
 	case bikerentalv1.CustomerType_CUSTOMER_TYPE_BUSINESS:
-		ct = bikerental.CustomerTypeBuisiness
+		ct = bikerental.CustomerTypeBusiness
 	}
 
 	return &bikerental.Customer{
 		ID:        rc.Id,
 		Type:      ct,
-		FirstName: rc.FirstName,
-		Surname:   rc.Surname,
-		Email:     rc.Email,
+		FirstName: data.GetFirstName(),
+		Surname:   data.GetSurname(),
+		Email:     data.GetEmail(),
 	}
 }
 

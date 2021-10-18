@@ -32,7 +32,7 @@ service BikeRentalService {
     rpc CreateBike(CreateBikeRequest) returns (Bike) {
         option (google.api.http) = {
             post: "/v1/bikes"
-            body: "bike"
+            body: "data"
         };
     };
 
@@ -40,6 +40,14 @@ service BikeRentalService {
     rpc DeleteBike(DeleteBikeRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/v1/bikes/{id=*}"
+        };
+    };
+
+    // Update a bike.
+    rpc UpdateBike(UpdateBikeRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/bikes/{id=*}"
+            body: "data"
         };
     };
 
@@ -79,9 +87,13 @@ service BikeRentalService {
 
 message Bike {
     string id = 1;
-    string modelName = 2; 
-    float weight = 3;
-    int32 pricePerHour = 4;
+    BikeData data = 2; 
+}
+
+message BikeData {
+    string modelName = 1; 
+    float weight = 2;
+    int32 pricePerHour = 3;
 }
 
 enum CustomerType {
@@ -92,6 +104,10 @@ enum CustomerType {
 
 message Customer {
     string id = 1;
+    CustomerData data = 2;
+}
+
+message CustomerData {
     CustomerType type = 2;
     string first_name = 3;
     string surname = 4;
@@ -130,7 +146,12 @@ message GetBikeRequest {
 }
 
 message CreateBikeRequest {
-    Bike bike = 1;
+    BikeData data = 1;
+}
+
+message UpdateBikeRequest {
+    string id = 1;
+    BikeData data = 2;
 }
 
 message DeleteBikeRequest {

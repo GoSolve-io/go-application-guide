@@ -1,19 +1,23 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	// Needed for registering postgres drivers in sql package.
 	_ "github.com/lib/pq"
 
+	// Needed for posgres migrations.
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
 	"github.com/Masterminds/squirrel"
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	sqlBuilder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-)
+var sqlBuilder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 // Adapter is a storage adapter for app.
 type Adapter struct {
@@ -22,8 +26,25 @@ type Adapter struct {
 }
 
 // NewAdapter creates new db adapter.
-func NewAdapter(dsn string, log logrus.FieldLogger) (*Adapter, error) {
-	db, err := sqlx.Open("postgres", dsn)
+func NewAdapter(
+	hostport string,
+	dbname string,
+	user string,
+	pass string,
+	migrationsDir string,
+	log logrus.FieldLogger,
+) (*Adapter, error) {
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, hostport, dbname)
+
+	m, err := migrate.New("file://"+migrationsDir, dbURL)
+	if err != nil {
+		return nil, fmt.Errorf("initiating migrations: %w", err)
+	}
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("migrating db: %w", err)
+	}
+
+	db, err := sqlx.Open("postgres", dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("opening postgres db: %w", err)
 	}

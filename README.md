@@ -1,11 +1,11 @@
-# Go developers incomplete guide to writing typical backend service ![Build](https://github.com/nglogic/go-application-guide/workflows/Build/badge.svg)
+# Go developers incomplete guide to writing a typical backend service ![Build](https://github.com/nglogic/go-application-guide/workflows/Build/badge.svg)
 
 
 Table of contents
-- [Go developers incomplete guide to writing typical backend service !Build](#go-developers-incomplete-guide-to-writing-typical-backend-service-)
+- [Go developers incomplete guide to writing a typical backend service !Build](#go-developers-incomplete-guide-to-writing-a-typical-backend-service-)
   - [Intro](#intro)
     - [What is this repository?](#what-is-this-repository)
-    - [Why this guide might be useful to you](#why-this-guide-might-be-useful-to-you)
+    - [Why this guide might be helpful to you](#why-this-guide-might-be-helpful-to-you)
     - [Guide goal](#guide-goal)
     - [Will this example application always work for me?](#will-this-example-application-always-work-for-me)
     - [How to read this repository](#how-to-read-this-repository)
@@ -48,9 +48,9 @@ The purpose of this project is to:
 - Explain some high-level concepts of go programming, such as organizing packages, error handling, passing context, etc.
 - Explain how to embrace good design principles in a project, such as clean architecture and SOLID principles.
 
-### Why this guide might be useful to you
+### Why this guide might be helpful to you
 
-Go is a great language. It's simple, easy to learn and the code is straightforward. You can write a simple application in just `main.go`. But when you want to write a bigger project, there isn't any single guide or framework that can tell you exactly how to organize it. All of the projects are different. Some of them are great but, usually, programmers struggle with this freedom. There are many examples of "transplanting" code pieces from other languages/frameworks into go projects (`models` package!).
+Go is a great language. It's simple, easy to learn, and the code is straightforward. You can write a simple application in just `main.go`. But when you want to write a bigger project, there isn't any single guide or framework that can tell you exactly how to organize it. All of the projects are different. Some of them are great but, usually, programmers struggle with this freedom. There are many examples of "transplanting" code pieces from other languages/frameworks into go projects (`models` package!).
 
 There are many great articles on how to write good go code, but there aren't that many sources explaining how to put all the good stuff together. One of the sources we recommend is Ben Johnson's blog: https://www.gobeyond.dev. He also uses a repository with an example code and has multiple posts that are worth reading. But this guide is going to be a little different. The other good source with series of blog posts is https://threedots.tech - check this as well.
 

@@ -11,13 +11,13 @@ import (
 // newBusinessCustomerDiscount returns discounts for business customers.
 // Discount rules:
 // - business customers only
-// - minimum reservation value: 100
-// - discount value: 5% of reservation value
+// - minimum reservation value: 100 (10000 cents)
+// - discount value: 5% of reservation value.
 func newBusinessCustomerDiscount(resValue int, customer bikerental.Customer) bikerental.Discount {
-	if customer.Type != bikerental.CustomerTypeBuisiness {
+	if customer.Type != bikerental.CustomerTypeBusiness {
 		return bikerental.Discount{}
 	}
-	if resValue < 100 {
+	if resValue < 10000 {
 		return bikerental.Discount{}
 	}
 	return bikerental.Discount{

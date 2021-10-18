@@ -11,7 +11,6 @@ import (
 type Discount struct {
 	// Amount is in eurocents.
 	Amount int
-	Reason string
 }
 
 // DiscountService provides methods for calculating discounts for a bike rentals.
@@ -49,7 +48,7 @@ func (r DiscountRequest) Validate() error {
 	return nil
 }
 
-// DiscountResponse is a reponse with calculated discount.
+// DiscountResponse is a response with calculated discount.
 type DiscountResponse struct {
 	Discount Discount
 }

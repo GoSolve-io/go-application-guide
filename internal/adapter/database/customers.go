@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
@@ -19,11 +20,11 @@ type CustomersRepository struct {
 }
 
 // GetInTx returns a customer by id using existing transaction.
-// If customer doesn't exists, returns bikerental.ErrNotFound error.
+// If customer doesn't exists, returns app.ErrNotFound error.
 func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id string) (*bikerental.Customer, error) {
 	var m customerModel
 	if err := tx.GetContext(ctx, &m, `select * from customers where id = $1`, id); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, app.ErrNotFound
 		}
 		return nil, fmt.Errorf("querying postgres: %w", err)
@@ -33,7 +34,7 @@ func (r *CustomersRepository) GetInTx(ctx context.Context, tx *sqlx.Tx, id strin
 	return &result, nil
 }
 
-// Get returns a customer by id. If it doesn't exists, returns bikerental.ErrNotFound error.
+// Get returns a customer by id. If it doesn't exists, returns app.ErrNotFound error.
 func (r *CustomersRepository) Get(ctx context.Context, id string) (*bikerental.Customer, error) {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -46,8 +47,8 @@ func (r *CustomersRepository) Get(ctx context.Context, id string) (*bikerental.C
 	return r.GetInTx(ctx, tx, id)
 }
 
-// AddInTx creates new customer in db using existing db transaction.
-func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c bikerental.Customer) error {
+// CreateInTx creates new customer in db using existing db transaction.
+func (r *CustomersRepository) CreateInTx(ctx context.Context, tx *sqlx.Tx, c bikerental.Customer) error {
 	sqlq := sqlBuilder.Insert("customers").
 		Columns("id", "type", "first_name", "surname", "email").
 		Values(
@@ -71,6 +72,35 @@ func (r *CustomersRepository) AddInTx(ctx context.Context, tx *sqlx.Tx, c bikere
 	return nil
 }
 
+// Create creates new customer in db.
+func (r *CustomersRepository) Create(ctx context.Context, c bikerental.Customer) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("creating postgresql transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Commit()
+	}()
+
+	return r.CreateInTx(ctx, tx, c)
+}
+
+// Delete removes customer from db.
+func (r *CustomersRepository) Delete(ctx context.Context, id string) error {
+	res, err := r.db.ExecContext(ctx, `delete from customers where id=$1`, id)
+	if err != nil {
+		return fmt.Errorf("deleting customer row from postgres: %w", err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return app.ErrNotFound
+	}
+
+	app.AugmentLogFromCtx(ctx, r.log).WithField("id", id).Info("customer deleted from db")
+
+	return nil
+}
+
 type customerModel struct {
 	ID        string `db:"id"`
 	Type      string `db:"type"`
@@ -87,7 +117,7 @@ func newCustmerModel(ac bikerental.Customer) customerModel {
 		Email:     ac.Email,
 	}
 	switch ac.Type {
-	case bikerental.CustomerTypeBuisiness:
+	case bikerental.CustomerTypeBusiness:
 		c.Type = customerTypeBusiness
 	case bikerental.CustomerTypeIndividual:
 		c.Type = customerTypeIndividual
@@ -106,7 +136,7 @@ func (m *customerModel) ToAppCustomer() bikerental.Customer {
 	}
 	switch m.Type {
 	case customerTypeBusiness:
-		c.Type = bikerental.CustomerTypeBuisiness
+		c.Type = bikerental.CustomerTypeBusiness
 	case customerTypeIndividual:
 		c.Type = bikerental.CustomerTypeIndividual
 	}

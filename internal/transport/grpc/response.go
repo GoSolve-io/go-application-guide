@@ -8,8 +8,8 @@ import (
 
 func newListBikesResponse(bikes []bikerental.Bike) *bikerentalv1.ListBikesResponse {
 	respBikes := make([]*bikerentalv1.Bike, 0, len(bikes))
-	for _, b := range bikes {
-		respBikes = append(respBikes, newResponseBike(&b))
+	for i := range bikes {
+		respBikes = append(respBikes, newResponseBike(&bikes[i]))
 	}
 
 	return &bikerentalv1.ListBikesResponse{
@@ -22,10 +22,12 @@ func newResponseBike(b *bikerental.Bike) *bikerentalv1.Bike {
 		return nil
 	}
 	return &bikerentalv1.Bike{
-		Id:           b.ID,
-		ModelName:    b.ModelName,
-		Weight:       float32(b.Weight),
-		PricePerHour: int32(b.PricePerHour),
+		Id: b.ID,
+		Data: &bikerentalv1.BikeData{
+			ModelName:    b.ModelName,
+			Weight:       float32(b.Weight),
+			PricePerHour: int32(b.PricePerHour),
+		},
 	}
 }
 
@@ -65,17 +67,19 @@ func newResponseCustomer(c *bikerental.Customer) *bikerentalv1.Customer {
 	switch c.Type {
 	case bikerental.CustomerTypeIndividual:
 		t = bikerentalv1.CustomerType_CUSTOMER_TYPE_INDIVIDUAL
-	case bikerental.CustomerTypeBuisiness:
+	case bikerental.CustomerTypeBusiness:
 		t = bikerentalv1.CustomerType_CUSTOMER_TYPE_BUSINESS
 	default:
 		t = bikerentalv1.CustomerType_CUSTOMER_TYPE_UNKNOWN
 	}
 	return &bikerentalv1.Customer{
-		Id:        c.ID,
-		Type:      t,
-		FirstName: c.FirstName,
-		Surname:   c.Surname,
-		Email:     c.Email,
+		Id: c.ID,
+		Data: &bikerentalv1.CustomerData{
+			Type:      t,
+			FirstName: c.FirstName,
+			Surname:   c.Surname,
+			Email:     c.Email,
+		},
 	}
 }
 

@@ -33,8 +33,8 @@ type ReservationsRepository struct {
 	log    logrus.FieldLogger
 }
 
-// ListReservations returns list of reservations matching request criteria.
-func (r *ReservationsRepository) ListReservations(ctx context.Context, query reservation.ListReservationsQuery) ([]bikerental.Reservation, error) {
+// List returns list of reservations matching request criteria.
+func (r *ReservationsRepository) List(ctx context.Context, query reservation.ListReservationsQuery) ([]bikerental.Reservation, error) {
 	sqlq := sqlBuilder.Select(
 		"r.*",
 		"c.first_name", "c.surname", "c.email", "c.type",
@@ -77,10 +77,26 @@ func (r *ReservationsRepository) ListReservations(ctx context.Context, query res
 	return result, nil
 }
 
-// CreateReservation creates new reservation in db.
+// Get returns a reservation by id.
+// Returns app.ErrNotFound if reservation doesn't exists.
+func (r *ReservationsRepository) Get(ctx context.Context, id string) (*bikerental.Reservation, error) {
+	var res reservationModel
+	if err := r.db.GetContext(ctx, &res, "select * from reservations where id=$1", id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, app.ErrNotFound
+		}
+		return nil, fmt.Errorf("querying postgres: %w", err)
+	}
+
+	result := res.ToAppReservation()
+
+	return &result, nil
+}
+
+// Create creates new reservation in db.
 // Bike id must be provided.
 // If customer doesn't exists, it is created with reservation.
-func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservation bikerental.Reservation) (*bikerental.Reservation, error) {
+func (r *ReservationsRepository) Create(ctx context.Context, reservation bikerental.Reservation) (*bikerental.Reservation, error) {
 	if err := r.checkReservationData(reservation); err != nil {
 		return nil, err
 	}
@@ -121,7 +137,7 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 		reservation.Customer = *customer
 	} else {
 		reservation.Customer.ID = uuid.NewString()
-		if err := r.parent.Customers().AddInTx(ctx, tx, reservation.Customer); err != nil {
+		if err := r.parent.Customers().CreateInTx(ctx, tx, reservation.Customer); err != nil {
 			return nil, fmt.Errorf("creating customer: %w", err)
 		}
 	}
@@ -131,19 +147,34 @@ func (r *ReservationsRepository) CreateReservation(ctx context.Context, reservat
 	}
 
 	if err := commitTx(ctx, tx, r.log); err != nil {
-		return nil, fmt.Errorf("commiting postgres transaction: %w", err)
+		return nil, fmt.Errorf("committing postgres transaction: %w", err)
 	}
 
 	return &reservation, nil
 }
 
-// CancelReservation sets reservation status to canceled.
-// Returns bikerental.ErrNotFound if reservation doesn't exists.
-func (r *ReservationsRepository) CancelReservation(ctx context.Context, bikeID string, id string) error {
+// Delete deletes reservation from db.
+func (r *ReservationsRepository) Delete(ctx context.Context, id string) error {
+	res, err := r.db.ExecContext(ctx, `delete from reservations where id=$1`, id)
+	if err != nil {
+		return fmt.Errorf("deleting reservation row from postgres: %w", err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return app.ErrNotFound
+	}
+
+	app.AugmentLogFromCtx(ctx, r.log).WithField("id", id).Info("reservation deleted from db")
+
+	return nil
+}
+
+// SetStatus updates the status of the reservation by its id.
+// Returns app.ErrNotFound if reservation doesn't exists.
+func (r *ReservationsRepository) SetStatus(ctx context.Context, id string, status bikerental.ReservationStatus) error {
 	sqlq := sqlBuilder.Update("reservations").
-		Set("status", bikerental.ReservationStatusCanceled).
-		Where(squirrel.Eq{"bike_id": bikeID}).
-		Where(squirrel.Eq{"id": "id"})
+		Set("status", status).
+		Where(squirrel.Eq{"id": id})
 	q, args, err := sqlq.ToSql()
 	if err != nil {
 		return fmt.Errorf("building sql query: %w", err)

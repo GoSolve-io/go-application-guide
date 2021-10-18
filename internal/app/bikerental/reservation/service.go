@@ -62,7 +62,7 @@ func (s *Service) GetBikeAvailability(ctx context.Context, bikeID string, startT
 		return false, fmt.Errorf("fetching bike data: %w", err)
 	}
 
-	reservations, err := s.reservationsRepo.ListReservations(ctx, ListReservationsQuery{
+	reservations, err := s.reservationsRepo.List(ctx, ListReservationsQuery{
 		BikeID:    bikeID,
 		StartTime: startTime,
 		EndTime:   endTime,
@@ -84,7 +84,7 @@ func (s *Service) ListReservations(ctx context.Context, req bikerental.ListReser
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}
 
-	reservations, err := s.reservationsRepo.ListReservations(ctx, ListReservationsQuery{
+	reservations, err := s.reservationsRepo.List(ctx, ListReservationsQuery{
 		BikeID:    req.BikeID,
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,
@@ -103,8 +103,6 @@ func (s *Service) CreateReservation(ctx context.Context, req bikerental.CreateRe
 		return nil, fmt.Errorf("invalid request: %w", err)
 	}
 
-	// We don't trust bike pricing from request,
-	// so we fetch real bike data from bike service.
 	bike, err := s.fetchRealBike(ctx, req.BikeID)
 	if err != nil {
 		if app.IsNotFoundError(err) {
@@ -116,8 +114,7 @@ func (s *Service) CreateReservation(ctx context.Context, req bikerental.CreateRe
 		return nil, err
 	}
 
-	// We don't trust bike pricing from request,
-	// so we fetch real bike data from bike service.
+	// If the customer exists, we want to have its real data.
 	customer, err := s.updateCustomerData(ctx, req.Customer)
 	if err != nil {
 		return nil, err
@@ -136,7 +133,7 @@ func (s *Service) CreateReservation(ctx context.Context, req bikerental.CreateRe
 	}
 
 	// We expect repository to return bikerental.ConflictError if reservation for that bike in that time range already exists.
-	reservation, err := s.reservationsRepo.CreateReservation(ctx, bikerental.Reservation{
+	reservation, err := s.reservationsRepo.Create(ctx, bikerental.Reservation{
 		ID:              uuid.New().String(),
 		Status:          bikerental.ReservationStatusApproved,
 		Customer:        req.Customer,
@@ -164,10 +161,20 @@ func (s *Service) CreateReservation(ctx context.Context, req bikerental.CreateRe
 }
 
 // CancelReservation removes reservation by id and bike id.
-// Returns bikerental.ErrNotFound if reservation doesn't exists.
+// Returns app.ErrNotFound if reservation doesn't exists.
 func (s *Service) CancelReservation(ctx context.Context, bikeID string, id string) error {
-	if err := s.reservationsRepo.CancelReservation(ctx, bikeID, id); err != nil {
-		return fmt.Errorf("canceling reservation in repository: %w", err)
+	reservation, err := s.reservationsRepo.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("fetching reservation by id from repository: %w", err)
+	}
+
+	// If the bike id doesn't match it's basically the same as invalid reservation id.
+	if reservation.Bike.ID != bikeID {
+		return app.ErrNotFound
+	}
+
+	if err := s.reservationsRepo.SetStatus(ctx, id, bikerental.ReservationStatusCanceled); err != nil {
+		return fmt.Errorf("updating reservation status in repository: %w", err)
 	}
 	return nil
 }

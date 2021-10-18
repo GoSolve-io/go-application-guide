@@ -4,8 +4,8 @@ https://github.com/golang-standards/project-layout/tree/master/internal
 
 TODO
 
-1. What it is?
-2. Explain subpackage naming 
+1. What is it?
+2. Explain subpackage naming.
 
 ## Why not `pkg`?
 

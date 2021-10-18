@@ -54,7 +54,7 @@ func (s *Service) Add(ctx context.Context, b bikerental.Bike) (*bikerental.Bike,
 	}
 
 	b.ID = uuid.NewString()
-	if err := s.repository.Add(ctx, b); err != nil {
+	if err := s.repository.Create(ctx, b); err != nil {
 		return nil, fmt.Errorf("adding bike to repository: %w", err)
 	}
 
@@ -78,6 +78,7 @@ func (s *Service) Update(ctx context.Context, id string, b bikerental.Bike) erro
 		return app.ErrNotFound
 	}
 
+	b.ID = id
 	if err := s.repository.Update(ctx, id, b); err != nil {
 		return fmt.Errorf("updating bike in repository: %w", err)
 	}
