@@ -14,7 +14,7 @@ type CustomerType int
 const (
 	CustomerTypeUnknown CustomerType = iota
 	CustomerTypeIndividual
-	CustomerTypeBuisiness
+	CustomerTypeBusiness
 )
 
 // Customer represents customer renting a bike.
@@ -29,7 +29,7 @@ type Customer struct {
 // Validate validates customer data.
 func (c Customer) Validate() error {
 	switch c.Type {
-	case CustomerTypeIndividual, CustomerTypeBuisiness:
+	case CustomerTypeIndividual, CustomerTypeBusiness:
 	default:
 		return app.NewValidationError("invalid customer type")
 	}

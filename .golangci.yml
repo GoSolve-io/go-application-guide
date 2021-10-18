@@ -1,0 +1,51 @@
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  forbidigo:
+    forbid:
+      - ^print.*$
+      - 'fmt\.Print.*'
+  funlen:
+    lines: 100
+    statements: 50
+  gocognit:
+    min-complexity: 40
+
+linters:
+  enable:
+  - bodyclose
+  - dogsled
+  - dupl
+  - durationcheck
+  - errorlint
+  - exportloopref
+  - forbidigo
+  - funlen
+  # - gci  # Forces deterministic imports, but doesn't allow inline comments.
+  - gochecknoinits
+  - gocognit
+  - goconst
+  - gocritic
+  - gocyclo
+  - godot
+  - gofumpt
+  - goimports
+  - gosec
+  - misspell
+  - noctx
+  - nolintlint
+  - predeclared
+  - revive
+  - stylecheck
+  - thelper
+  - tparallel
+  - unconvert
+  - unparam
+  - wastedassign
+
+issues:
+  exclude: []
+
+run:
+  skip-files:
+    - ".*pb.*go"

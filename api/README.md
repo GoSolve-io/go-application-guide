@@ -15,3 +15,7 @@ TODO
 
 1. Go files
 2. Swagger docs
+
+## Tips
+
+TODO: See `Bike` + `BikeData` pattern.

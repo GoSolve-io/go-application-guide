@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
@@ -32,11 +33,11 @@ func (r *BikesRepository) List(ctx context.Context) ([]bikerental.Bike, error) {
 	return result, nil
 }
 
-// Get returns a bike by id. If it doesn't exists, returns bikerental.ErrNotFound error.
+// Get returns a bike by id. If it doesn't exists, returns app.ErrNotFound error.
 func (r *BikesRepository) Get(ctx context.Context, id string) (*bikerental.Bike, error) {
 	var b bikeModel
 	if err := r.db.GetContext(ctx, &b, "select * from bikes where id=$1", id); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, app.ErrNotFound
 		}
 		return nil, fmt.Errorf("querying postgres: %w", err)
@@ -46,8 +47,8 @@ func (r *BikesRepository) Get(ctx context.Context, id string) (*bikerental.Bike,
 	return &result, nil
 }
 
-// Add creates new bike in db.
-func (r *BikesRepository) Add(ctx context.Context, b bikerental.Bike) error {
+// Create creates new bike in db.
+func (r *BikesRepository) Create(ctx context.Context, b bikerental.Bike) error {
 	sqlq := sqlBuilder.Insert("bikes").
 		Columns("id", "model_name", "weight", "price_per_h").
 		Values(
@@ -70,21 +71,21 @@ func (r *BikesRepository) Add(ctx context.Context, b bikerental.Bike) error {
 	return nil
 }
 
-// Update updates a bike in db by id. If bike is not in db, returns bikerental.ErrNotFound error.
+// Update updates a bike in db by id. If bike is not in db, returns app.ErrNotFound error.
 func (r *BikesRepository) Update(ctx context.Context, id string, b bikerental.Bike) error {
 	sqlq := sqlBuilder.Update("bikes").
-		Set("model_name", squirrel.Expr(":model_name")).
-		Set("weight", squirrel.Expr(":weight")).
-		Set("price_per_h", squirrel.Expr(":price_per_h")).
-		Where(squirrel.Eq{"id": squirrel.Expr(":id")})
-	q, _, err := sqlq.ToSql()
+		Set("model_name", b.ModelName).
+		Set("weight", b.Weight).
+		Set("price_per_h", b.PricePerHour).
+		Where(squirrel.Eq{"id": id})
+	q, args, err := sqlq.ToSql()
 	if err != nil {
 		return fmt.Errorf("building sql query: %w", err)
 	}
 
-	res, err := r.db.NamedExecContext(ctx, q, newBikeModel(b))
+	res, err := r.db.ExecContext(ctx, q, args...)
 	if err != nil {
-		return fmt.Errorf("inserting bike row into postgres: %w", err)
+		return fmt.Errorf("updating bike row in postgres: %w", err)
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
@@ -96,7 +97,7 @@ func (r *BikesRepository) Update(ctx context.Context, id string, b bikerental.Bi
 	return nil
 }
 
-// Delete deletes a bike from db by id. If bike is not in db, returns bikerental.ErrNotFound error.
+// Delete deletes a bike from db by id. If bike is not in db, returns app.ErrNotFound error.
 func (r *BikesRepository) Delete(ctx context.Context, id string) error {
 	res, err := r.db.ExecContext(ctx, `delete from bikes where id=$1`, id)
 	if err != nil {
@@ -120,7 +121,7 @@ type bikeModel struct {
 }
 
 func newBikeModel(ab bikerental.Bike) bikeModel {
-	// In this example bike is really simple and can be exaclty the same as domain bike type.
+	// In this example bike is really simple and can be exactly the same as domain bike type.
 	return bikeModel(ab)
 }
 

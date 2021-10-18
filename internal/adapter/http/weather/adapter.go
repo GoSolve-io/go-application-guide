@@ -102,7 +102,6 @@ func (a *Adapter) fetchCurrentWeather(ctx context.Context, locID int) (*weatherE
 		return nil, nil
 	}
 	return &resp.ConsolidatedWeather[0], nil
-
 }
 
 type locationEntry struct {

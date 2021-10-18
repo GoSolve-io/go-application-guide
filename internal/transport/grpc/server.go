@@ -68,10 +68,10 @@ func (s *Server) GetBike(ctx context.Context, req *bikerentalv1.GetBikeRequest) 
 
 // CreateBike creates new bike.
 func (s *Server) CreateBike(ctx context.Context, req *bikerentalv1.CreateBikeRequest) (*bikerentalv1.Bike, error) {
-	if req.Bike == nil {
-		return nil, status.Error(codes.InvalidArgument, "bike can't be empty")
+	if req.Data == nil {
+		return nil, status.Error(codes.InvalidArgument, "bike data can't be empty")
 	}
-	b := newAppBikeFromRequest(req.Bike)
+	b := newAppBikeFromRequestData(req.Data)
 	createdBike, err := s.bikeService.Add(ctx, *b)
 	if err != nil {
 		s.logError(ctx, err, "CreateBike")
@@ -81,6 +81,22 @@ func (s *Server) CreateBike(ctx context.Context, req *bikerentalv1.CreateBikeReq
 	s.logInfo(ctx, "CreateBike", "bike created: %s", createdBike.ID)
 
 	return newResponseBike(createdBike), nil
+}
+
+// UpdateBike updates a bike.
+func (s *Server) UpdateBike(ctx context.Context, req *bikerentalv1.UpdateBikeRequest) (*empty.Empty, error) {
+	if req.Id == "" {
+		return nil, status.Error(codes.InvalidArgument, "bike id can't be empty")
+	}
+	b := newAppBikeFromRequestData(req.Data)
+	if err := s.bikeService.Update(ctx, req.Id, *b); err != nil {
+		s.logError(ctx, err, "UpdateBike")
+		return nil, NewServerError(err)
+	}
+
+	s.logInfo(ctx, "UpdateBike", "bike updated: %s", req.Id)
+
+	return &empty.Empty{}, nil
 }
 
 // DeleteBike deletes a bike.
@@ -126,8 +142,8 @@ func (s *Server) ListReservations(ctx context.Context, req *bikerentalv1.ListRes
 	}
 
 	var outrs []*bikerentalv1.Reservation
-	for _, v := range reservations {
-		outrs = append(outrs, newResponseReservation(&v))
+	for i := range reservations {
+		outrs = append(outrs, newResponseReservation(&reservations[i]))
 	}
 	return &bikerentalv1.ListReservationsResponse{
 		Reservations: outrs,
@@ -204,13 +220,8 @@ func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
 	srv bikerentalv1.BikeRentalServiceServer,
-	addr string,
+	lis net.Listener,
 ) error {
-	l, err := net.Listen("tcp", addr)
-	if err != nil {
-		return fmt.Errorf("creating net listener: %w", err)
-	}
-
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
 	)
@@ -221,6 +232,6 @@ func RunServer(
 		s.GracefulStop()
 	}()
 
-	log.Infof("grpc server: listening on %s", addr)
-	return s.Serve(l)
+	log.Infof("grpc server: listening on %s", lis.Addr().String())
+	return s.Serve(lis)
 }

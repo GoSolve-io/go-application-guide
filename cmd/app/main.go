@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -38,7 +39,7 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
-	dbAdapter, err := database.NewAdapter(conf.PostgresDSN, log)
+	dbAdapter, err := database.NewAdapter(conf.PostgresHostPort, conf.PostgresDB, conf.PostgresUser, conf.PostgresPass, conf.PostgresMigrationsDir, log)
 	if err != nil {
 		log.Fatalf("creating bike repository: %v", err)
 	}
@@ -94,13 +95,17 @@ func main() {
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		if err := httpgateway.RunServer(ctx, log, srv, conf.HTTPServerAddr); err != nil {
-			return fmt.Errorf("http server: %v", err)
+			return fmt.Errorf("http server: %w", err)
 		}
 		return nil
 	})
 	g.Go(func() error {
-		if err = grpc.RunServer(ctx, log, srv, conf.GRPCServerAddr); err != nil {
-			return fmt.Errorf("grpc server: %v", err)
+		l, err := net.Listen("tcp", conf.GRPCServerAddr)
+		if err != nil {
+			return fmt.Errorf("creating net listener: %w", err)
+		}
+		if err = grpc.RunServer(ctx, log, srv, l); err != nil {
+			return fmt.Errorf("grpc server: %w", err)
 		}
 		return nil
 	})

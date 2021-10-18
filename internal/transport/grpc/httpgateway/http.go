@@ -2,6 +2,7 @@ package httpgateway
 
 import (
 	context "context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -56,7 +57,7 @@ func RunServer(
 	}()
 
 	log.Infof("http server: listening on %s", addr)
-	if err := s.ListenAndServe(); err != http.ErrServerClosed {
+	if err := s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil
