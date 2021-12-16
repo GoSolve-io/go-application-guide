@@ -1,3 +1,4 @@
 # Build binary
 /app
 /*.out
+/.idea
