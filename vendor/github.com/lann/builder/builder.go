@@ -2,9 +2,10 @@
 package builder
 
 import (
-	"github.com/lann/ps"
 	"go/ast"
 	"reflect"
+
+	"github.com/lann/ps"
 )
 
 // Builder stores a set of named values.
