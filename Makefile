@@ -19,7 +19,7 @@ test:
 # For more torough checks, we recommend golangci-lint with default configuration.
 .PHONY: lint
 lint: check-golangcilint-bin
-	golangci-lint run --build-tags=integration ./...
+	golangci-lint run --build-tags=integration --skip-dirs-use-default  --modules-download-mode=mod ./...
 
 .PHONY: generate
 generate: generate-proto generate-go
