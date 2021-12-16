@@ -3,6 +3,7 @@ package bikerental
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/nglogic/go-application-guide/internal/app"
@@ -29,10 +30,10 @@ type Reservation struct {
 	StartTime time.Time
 	EndTime   time.Time
 
-	// TotalValue is a total amount to pay by the customer in eurocents.
+	// TotalValue is a total amount to pay by the customer in euro-cents.
 	TotalValue int
 
-	// AppliedDiscount is amount of discount applied to total reservation value in eurocents.
+	// AppliedDiscount is amount of discount applied to total reservation value in euro-cents.
 	AppliedDiscount int
 }
 
@@ -45,7 +46,7 @@ func (r Reservation) Validate() error {
 	return nil
 }
 
-// ReservationService provies methods for making reservations.
+// ReservationService provides methods for making reservations.
 type ReservationService interface {
 	GetBikeAvailability(ctx context.Context, bikeID string, startTime, endTime time.Time) (bool, error)
 	ListReservations(ctx context.Context, req ListReservationsRequest) ([]Reservation, error)
@@ -64,8 +65,8 @@ type CreateReservationRequest struct {
 
 // Validate validates request data.
 func (r *CreateReservationRequest) Validate() error {
-	if r.BikeID == "" {
-		return app.NewValidationError("bike id is empty")
+	if _, err := uuid.Parse(r.BikeID); err != nil {
+		return app.NewValidationError("bike id is invalid")
 	}
 	if r.Customer.ID == "" {
 		if err := r.Customer.Validate(); err != nil {
@@ -77,9 +78,9 @@ func (r *CreateReservationRequest) Validate() error {
 	}
 
 	if r.StartTime.Before(time.Now()) {
-		return app.NewValidationError("start time time can't be in the past")
+		return app.NewValidationError("start time can't be in the past")
 	}
-	if r.EndTime.Before(r.StartTime) {
+	if !r.EndTime.After(r.StartTime) {
 		return app.NewValidationError("end time have to ba after start time")
 	}
 
@@ -108,8 +109,8 @@ type ListReservationsRequest struct {
 
 // Validate validates request data.
 func (r *ListReservationsRequest) Validate() error {
-	if r.BikeID == "" {
-		return app.NewValidationError("bike id can't be empty")
+	if _, err := uuid.Parse(r.BikeID); err != nil {
+		return app.NewValidationError("bike id can't be invalid")
 	}
 
 	// Note: IsZero check doesn't work for empty timestamps created by empty protobuf timestamp.AsTime.

@@ -141,7 +141,7 @@ func (s *Server) ListReservations(ctx context.Context, req *bikerentalv1.ListRes
 		return nil, NewServerError(err)
 	}
 
-	var outrs []*bikerentalv1.Reservation
+	outrs := make([]*bikerentalv1.Reservation, 0, len(reservations))
 	for i := range reservations {
 		outrs = append(outrs, newResponseReservation(&reservations[i]))
 	}
@@ -224,6 +224,7 @@ func RunServer(
 ) error {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
+		grpc.UnaryInterceptor(LogCtxUnaryServerInterceptor()),
 	)
 	bikerentalv1.RegisterBikeRentalServiceServer(s, srv)
 	go func() {

@@ -47,7 +47,7 @@ func (s *Service) Get(ctx context.Context, id string) (*bikerental.Bike, error) 
 // Returns added bike with new id.
 func (s *Service) Add(ctx context.Context, b bikerental.Bike) (*bikerental.Bike, error) {
 	if b.ID != "" {
-		return nil, app.NewValidationError("can't add new bike with not empty id")
+		return nil, app.NewValidationError("can't add new bike with not invalid id")
 	}
 	if err := b.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid bike data: %w", err)
@@ -63,8 +63,8 @@ func (s *Service) Add(ctx context.Context, b bikerental.Bike) (*bikerental.Bike,
 
 // Update updates existing bike by id.
 func (s *Service) Update(ctx context.Context, id string, b bikerental.Bike) error {
-	if id == "" {
-		return app.NewValidationError("empty id")
+	if _, err := uuid.Parse(id); err != nil {
+		return app.NewValidationError("invalid id")
 	}
 	if err := b.Validate(); err != nil {
 		return fmt.Errorf("invalid bike data: %w", err)
@@ -87,8 +87,8 @@ func (s *Service) Update(ctx context.Context, id string, b bikerental.Bike) erro
 
 // Delete deletes existing bike. If bike doesn't exists, returns nil.
 func (s *Service) Delete(ctx context.Context, id string) error {
-	if id == "" {
-		return app.NewValidationError("empty id")
+	if _, err := uuid.Parse(id); err != nil {
+		return app.NewValidationError("invalid id")
 	}
 	if err := s.repository.Delete(ctx, id); err != nil {
 		if app.IsNotFoundError(err) {

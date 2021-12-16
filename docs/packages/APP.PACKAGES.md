@@ -63,7 +63,7 @@ The package `internal/adapter` and its sub-packages provide a way for the applic
 
 Note that in the example app we use 2 REST APIs, so we have 2 adapters:
 
-- `internal/adapter/http/incients`
+- `internal/adapter/http/incidents`
 - `internal/adapter/http/weather`
 
 There's the parent package for them `internal/adapter/http`. It provides a simple way to use REST API. Child packages can build on this simpler abstraction and don't have to deal with HTTP communication details, like building requests, closing response body, decoding responses, etc.
