@@ -176,7 +176,93 @@ TODO
 
 ### Error handling
 
-TODO
+Go is handling errors in probably the most reasonable way: **it doesn't**. It gives the developer the ability to handle
+them based on the developer's requirements. For years the most popular languages like JavaScript or Python tried to move
+away the burden of error handling from the developer. This resulted in no errors being handled at all and overusing the
+try..catch blocks.
+
+Go proposed a different, yet old-fashioned, way to handle errors: **errors has been promoted to fist class citizens**.
+This, together with multiple return values, allows to treat the error as part of the logic.
+
+#### Error type
+
+The error is an interface defined in the standard library like this:
+
+```go
+type error interface {
+Error() string
+}
+```
+
+The `errors` package provides the most basic implementation of `error` interface with its unexported `errorString` type.
+Every time the `errors.New` method is used it simply returns a new `errorString`.
+
+Thanks to error being defined as a simple interface it is possible to use other types in place of an error. We will come
+back to this later.
+
+#### Returning errors
+
+The most common way to return an error is to return it as the **last return value**. Most IDE and linters will complain
+if an error is returned between other return values:
+
+```go
+func SomeFunction(input1, input2 int) (output1, output2, error) { // ... }
+```
+
+Thanks to this standardisation it is easier to check error only if we don't care about the result of the method, by
+using blank identifier:
+
+```go
+if _, _, err := SomeFunction(0, 1); err != nil { // ... }
+```
+
+The way Go methods returns the error attracted a lot of attention and criticism, because one of its drawbacks (probably
+the only one) is the amount of boilerplate code it produces:
+
+```go
+something, err := DoSomething()
+if err != nil {
+// handle error
+return err
+}
+
+somethingElse, err := DoSomethingElse()
+if err != nil {
+// handle error, again
+return err
+}
+```
+
+But let's be honest: what's wrong with handling errors explicitly? Did any of us expected the code to always work
+flawlessly and never return an error? \
+This approach encourages developer to actually **think** what could go wrong and **prepare** for it. It is not forcing
+anyone to handle the error, as it is allowed to use the blank identifier for errors, too. This has some drawbacks, some
+of them being the linters constantly complaining about ignored error and teammate's glancing hatefully.
+
+#### Sentinel errors
+
+// TODO: write something about the sentinel errors, e.g. ErrNotFound = errors.New("not found")
+
+#### Wrapping errors
+
+// TODO: show how to wrap errors using fmt.Errorf function
+
+#### SOLID compliant errors
+
+// TODO: why to define application/library errors and not return database/other errors directly - hide the
+implementation!
+
+#### Custom error types
+
+// TODO: When to use, and when to avoid custom error types. How to define them. Include grpc.Status example maybe?
+
+#### Checking error type
+
+// TODO: How to use the errors.Is and errors.As methods with our custom types.
+
+#### Handling unexpected panics
+
+// TODO: Last but not least: panics and deferring recovery as last resort; useful for dependencies we do not control.
 
 https://blog.golang.org/go1.13-errors
 
