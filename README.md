@@ -241,16 +241,69 @@ of them being the linters constantly complaining about ignored error and teammat
 
 #### Sentinel errors
 
-// TODO: write something about the sentinel errors, e.g. ErrNotFound = errors.New("not found")
+Now ask ourselves a question: do we like to figure out what happened based on the returned string? No?
+
+That's where the **sentinel errors** will help. A sentinel error is an exported, predefined error that can be used to
+compare it against the returned error. Some well-known examples of sentinel errors are `os.ErrExists` or `sql.ErrNoRows`
+. \
+They're simply defined using standard `errors.New` function,
+e.g. `var ErrNoRows = errors.New("sql: no rows in result set")` and thanks to being predefined they can be compared with
+whatever will be returned from the underlying library.
+
+It is expected for libraries to define and document sentinel errors. Should application define such errors as well? The
+answer is: **yes**, especially when the application exposes an API.
+
+Using sentinel errors inside the application's or library's code might help, but is not mandatory. Also predefined error
+lacks one important feature: it carries no details on what actually happened.
 
 #### Wrapping errors
 
-// TODO: show how to wrap errors using fmt.Errorf function
+One issue of sentinel errors is lack of accurate details of what went wrong. That's why Go gives the developer an
+ability to wrap an error with some additional information. Logging or printing a wrapper error usually exposes a path
+that can be used to pinpoint the source of the issue:
+
+```go
+var (
+sentinelError = errors.New("this is some error")
+)
+
+func One() error {
+return fmt.Errorf("One: %w", sentinelError)
+}
+
+func Two() error {
+return fmt.Errorf("Two: %w", One())
+}
+
+func main() {
+fmt.Println(Two()) // Two: One: this is some error
+}
+```
+
+As of Go 1.13 the preferred way for wrapping an error is simply using the `fmt.Errorf` function with `%w` format
+placeholder. `%w` works in a similar way as `%v`, but allows the original error to be recovered with `errors.Unwrap()`.
+Unwrapping an error returns the previous error.
+
+Because wrapping an error attaches the original error to the new one it is important to know when to stop. The general
+rule is to only wrap errors if there is a way or plan to handle them in the caller and using `%v` when it is not
+possible to handle it.
 
 #### SOLID compliant errors
 
-// TODO: why to define application/library errors and not return database/other errors directly - hide the
-implementation!
+Wrapping an error is definitely helpful when it comes to debugging a failed request, but comes with a risk of exposing
+the implementation details. This breaks the SOLID principles and causes the library or application to behave in
+unexpected ways. In worst case scenario it can lead to serious issues on the caller's end.
+
+Let's imagine our example app returns a database error. The client will receive an error (let's say it will
+be `fmt.Errorf("bike not found %w", pq.ErrInFailedTransaction`). The client will accommodate for this error and will
+display a nice message to the customer. At some point we will decide to change the internal database, but won't change
+the code, so we will return `fmt.Errorf("bike not found", mysql.ErrInvalidConn)`. This will probably cause the client to
+display an unexpected exception error.
+
+That's why errors should be written with the SOLID principle in mind:
+
+- should be defined and exported in the package that is supposed to be imported/used by the client
+- should hide the implementation details
 
 #### Custom error types
 
@@ -263,6 +316,15 @@ implementation!
 #### Handling unexpected panics
 
 // TODO: Last but not least: panics and deferring recovery as last resort; useful for dependencies we do not control.
+
+#### Anti-patterns
+
+// TODO: what should be avoided at all cost?
+
+- returning _empty_ or _default_ values in case of an error
+- returning errors that leaks the implementation details
+- return errors without any trace of where they happened
+- returning errors from underlying libraries (similar to point 2)
 
 https://blog.golang.org/go1.13-errors
 
