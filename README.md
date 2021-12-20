@@ -186,6 +186,81 @@ Nice talk: https://www.youtube.com/watch?v=IKoSsJFdRtI
 
 TODO: Primarily for signaling end of execution to goroutines
 
+Context is a well known concept from other programming languages. To provide some background for someone who never used
+contexts before: it is a way to tie all the requests together and provide a way to stop the execution if needed. It is
+sometimes used to carry request scope variables, but this should not be overused and will be explained in more details
+later.
+
+In Go, it is mostly used to signal end of execution to goroutines and when passing through domain boundaries.
+
+#### Signaling end of execution
+
+Thanks to Go being designed with the concurrency in mind it is common to use goroutines. Goroutines are small and fast
+and benefits gained by using them definitely surpass drawbacks and risks.
+
+Similar to how the errors should be always returned as the last parameter, the methods that are using context should
+always accept it as the first parameter. Also, it makes sense to pass the context even if we don't plan to use it at
+this moment.
+
+There is one thing that might lead to issues: it is not clear when - and if - all goroutines have finished. Long-running
+goroutines can lead to unexpected issues, like unexpectedly altering the object's state or trying to write to an already
+closed channel. Leaving goroutines unattended can lead to resource leak and cause the system's health to degrade over
+time.
+
+That's where the **context** comes to the rescue. Thanks to its ability to signal end of execution we can manage the
+goroutines to a great extent.
+
+The first step is to create a context and decide how do we want to cancel it. There are at least two ways for doing
+this:
+
+- using **cancel** method
+- defining **deadline**
+
+The first use case is very simple and allows the developer to stop the execution at any time by calling the **cancel**
+method returned from **WithCancel** method (other methods return the cancel as well, but let's focus on this one for
+now):
+
+```go
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()
+```
+
+It is important to always cancel the context, that's why deferring call to this method is the usual way of writing the
+code.
+
+Other solution is to define a deadline on the context, so it will get automatically canceled when the time comes. This
+is often used within servers to make sure the caller will not wait forever for the request to be processed:
+
+```go
+ctx, cancel := context.WithDeadline(context.Background(), time.Date(2022, 12, 31, 0, 0, 0))
+defer cancel()
+```
+
+There are two ways of setting the deadline: with the method mentioned above, or with `WithTimeout` that accepts the
+parent context and a `time.Duration`, so it is possible to set the deadline e.g. 30 seconds in the future:
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
+defer cancel()
+```
+
+Now, once the context is ready to use, the goroutines (or any other receiver of the context) needs to simply check
+the `Err` method or listen to the `Done` channel. By default, as soon as the context gets canceled the `Err()` will
+return `DeadlineExceeded` or `Canceled` error. It is a simple way to check if the execution should proceed:
+
+```go
+func DoSomething(ctx context.Context) error {
+if err := ctx.Err(); err != nil {
+// simply stop
+return fmt.Errorf("do something: %w", err)
+}
+// do stuff
+}
+```
+
+This should work fine in most cases, but what if this method is supposed to take some time? Calling `Err` on every loop
+step will simply litter the code.
+
 ### Overusing language features
 
 TODO
