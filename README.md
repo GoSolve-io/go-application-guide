@@ -307,7 +307,29 @@ That's why errors should be written with the SOLID principle in mind:
 
 #### Custom error types
 
-// TODO: When to use, and when to avoid custom error types. How to define them. Include grpc.Status example maybe?
+In some cases a simple error string is not enough. To provide more context on the error it is possible to use custom
+error types. As mentioned before an error is each type that implements the error interface.
+
+To use a custom type as an error simply add `Error() string` method to it:
+
+```go
+type CustomError struct {
+Details string
+}
+
+func (c CustomError) Error() string {
+return fmt.Sprintf("details: %s", c.Details)
+}
+```
+
+Popular use case is to define custom type for validation errors and use them to give more details on what validation has
+failed.
+
+Some libraries expose their custom error types as well. Good examples
+are [pq.Error](https://github.com/lib/pq/blob/master/error.go#L25)
+and [MySQL error](https://github.com/go-sql-driver/mysql/blob/master/errors.go#L58). Both provides similar
+functionality: expose the internal database error code, so it can be handled better in the application code. Remember to
+only use this error types in the database adapters to not break the SOLID.
 
 #### Checking error type
 
