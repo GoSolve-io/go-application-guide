@@ -333,24 +333,85 @@ only use this error types in the database adapters to not break the SOLID.
 
 #### Checking error type
 
-// TODO: How to use the errors.Is and errors.As methods with our custom types.
+Thanks to improvements introduced in Go 1.13 it is now much easier to work with custom errors. Two new methods has been
+added: **Is** and **As**.
+
+**Is** checks if the error, or any error it is wrapping, is of the specified type, while **As** not only checks if the
+error is of given type, but also fills provided structure with the actual content if the types match.
+
+A sample use case of the **As** method is checking the details of the above error type:
+
+```go
+// more code here
+
+var customError CustomError
+err := DoSomething() // 
+if errors.As(err, &customError) {
+// do something with the customError.Details field
+}
+```
+
+Both **errors.Is** and **errors.As** methods are better than comparing the errors using `==` because they unwrap the
+error if possible.
 
 #### Handling unexpected panics
 
-// TODO: Last but not least: panics and deferring recovery as last resort; useful for dependencies we do not control.
+The last thing worth to mention in the terms of error handling are panics. If the program faces an issue that was not
+expected at all - e.g. accessing a nil pointer or using an index outside the array boundaries - it will panic. A panic
+is a special case that will immediately stop the current operation and will propagate to the caller. If the caller is
+not prepared to handle the panic it will panic as well and so on, up to the main method, causing the whole program to
+stop. This is as bad as it sounds: if the application is an HTTP server it will not inform the client of the panic and
+the client will simply wait for the server to respond.
+
+Fortunately panic is not affecting the deferred methods. This allows the developer to use **recover** method. **
+Recovery** catches the panic, returns the initial error and allows the method to return in an expected way. This further
+allows the application to handle error as usual.
+
+Handling a panic is very easy, but should not be overused. It resembles the try..catch method of other languages, but
+just because something work in other languages should not make it being the preferred way of doing this in Go.
+
+```go
+func SomeMethod() (err error) {
+defer func () {
+if something := recover(); something != nil {
+// do something with something: it might be an error or something else
+switch e := something.(type) {
+case error:
+err = e
+case string:
+err = fmt.Errorf("my error: %s", e)
+default:
+err = fmt.Errorf("something strange happened: %v", something)
+}
+}
+}()
+
+panic("this will be a panic")
+}
+```
+
+This code snippet can be used within the server's middleware as well. This way each failed request will at least let the
+client know something bad happened.
 
 #### Anti-patterns
 
-// TODO: what should be avoided at all cost?
+Because handling errors in Go produces some boilerplate code ignoring errors became rather popular solution. This is
+definitely not a good approach. If you don't know how to handle error simply wrap it and return to the caller. If the
+error has been returned it means the application encountered unexpected issue, and writing software **is** handling
+unexpected cases. Otherwise, there would be no `if..else`.
 
-- returning _empty_ or _default_ values in case of an error
-- returning errors that leaks the implementation details
-- return errors without any trace of where they happened
-- returning errors from underlying libraries (similar to point 2)
+Use the Go feature to return multiple values instead of defaulting to some default or empty value in case of an error.
+This is often used in all kinds of creators, but doesn't play well with the logic of an application. If the creation
+failed because of an invalid parameter it should return a validation error instead of a blank object.
 
-https://blog.golang.org/go1.13-errors
+Something that has been mentioned earlier: handle the errors with SOLID in mind. There's no need for the caller to know
+how the called method is implemented, so instead of returning the raw error map it to something the caller can
+understand better.
 
-Nice talk: https://www.youtube.com/watch?v=IKoSsJFdRtI
+Another bad practice when handling errors is to return the errors as-is, without wrapping them first. Imagine a case
+where an aggregate - that's supposed to pull data from different sources - returns *Not Found* error. What exactly is
+missing? Is it missing all pieces, or only one of them? Wrapping errors definitely helps to trace down the issue, and
+using **Is** and **As** methods still allows to handle them accordingly.
 
 ### Context
 
@@ -367,19 +428,21 @@ TODO
 
 Just kidding, don't do that. Optimize for reading; care more about your coworkers than CPU cycles.
 
-
 ## Links to other guides
 
 TODO: **need more links**
 TODO: How to make this section short and to the point? We don't want 100+ links here.
 
+Nice talk about error handling: https://www.youtube.com/watch?v=IKoSsJFdRtI
+
 ### High abstraction level
 
-1.  https://www.gobeyond.dev/ - example repository and a series of blog posts.
-2.  https://threedots.tech/ - example repository and a series of blog posts.
+1. https://www.gobeyond.dev/ - example repository and a series of blog posts.
+2. https://threedots.tech/ - example repository and a series of blog posts.
+
 ### Medium abstraction level
 
-1.  https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html
+1. https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html
 
 ### Low abstraction level
 
