@@ -294,6 +294,9 @@ return
 }
 ```
 
+It is worth to mention that using context is concurrency-safe, so calling `Err` or using the `Done()` channel is safe
+within multiple goroutines.
+
 #### Passing request-scoped values
 
 Another use case for context is to pass request-scoped data across multiple layers and domains. This is often used
@@ -317,6 +320,26 @@ fmt.Println(ctx.Value(contextKey))
 This feature can be used to add trace ID to the context, as shown in the
 example [code](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/transport/grpc/httpgateway/middleware.go#L14)
 and used later with [logger](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/app/log.go#L26).
+
+#### Context inheritance
+
+Some context operations returns a new context, that is a child of the parent context. This is particularly useful in
+cases where some part of the task should be guaranteed to finish before others, but with one caveat: if the parent
+context will be canceled, all child contexts will be canceled as well.
+
+It is possible to avoid cascade failures using this feature, though. By using context's `Deadline` method it is possible
+to obtain the deadline of the parent context, and set child's context deadline slightly smaller than the parent one:
+
+```go
+parentDeadline, hasDeadline := parentCtx.Deadline()
+if !hasDeadline {
+parentDeadline = time.Now().Add(5 * time.Second)
+}
+
+childContext, childCancel := context.WithDeadline(parentCtx, parentDeadline.Sub(time.Second))
+```
+
+This way it is possible to ensure the called methods will always finish before the parent context will time out.
 
 ### Overusing language features
 
