@@ -245,7 +245,7 @@ defer cancel()
 ```
 
 Now, once the context is ready to use, the goroutines (or any other receiver of the context) needs to simply check
-the `Err` method or listen to the `Done` channel. By default, as soon as the context gets canceled the `Err()` will
+the `Err` method or listen to the `Done()` channel. By default, as soon as the context gets canceled the `Err()` will
 return `DeadlineExceeded` or `Canceled` error. It is a simple way to check if the execution should proceed:
 
 ```go
@@ -260,6 +260,63 @@ return fmt.Errorf("do something: %w", err)
 
 This should work fine in most cases, but what if this method is supposed to take some time? Calling `Err` on every loop
 step will simply litter the code.
+
+The solution for more complex tasks is to listen to the `Done()` channel of the context object. Once context gets
+canceled or times out, the `Done()` channel is closed so all blocked reads will be unlocked. This is the best solution
+when using channels:
+
+// TODO: provide better example here
+
+```go
+func Parent() {
+ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+defer cancel()
+
+ch := make(chan int)
+
+go Child(ctx, ch)
+
+for v := range ch {
+fmt.Println(v)
+}
+}
+
+func Child(ctx context.Context, ch chan<- int) {
+for {
+select {
+case <-time.After(time.Second):
+ch<-rand.Int()
+case <-ctx.Done():
+close(ch)
+return
+}
+}
+}
+```
+
+#### Passing request-scoped values
+
+Another use case for context is to pass request-scoped data across multiple layers and domains. This is often used
+together with tracing, logging and authorization middlewares.
+
+To add a request-scoped value to the context simply use `context.WithValue` method, retrieve it using the
+context's `Value`:
+
+```go
+func Parent(ctx context.Context) {
+valuedContext := context.WithValue(ctx, contextKey, contextValue)
+
+Child(valuedContext)
+}
+
+func Child(ctx context.Context) {
+fmt.Println(ctx.Value(contextKey))
+}
+```
+
+This feature can be used to add trace ID to the context, as shown in the
+example [code](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/transport/grpc/httpgateway/middleware.go#L14)
+and used later with [logger](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/app/log.go#L26).
 
 ### Overusing language features
 
