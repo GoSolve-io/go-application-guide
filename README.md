@@ -323,9 +323,9 @@ and used later with [logger](https://github.com/GoSolve-io/go-application-guide/
 
 #### Context inheritance
 
-Some context operations returns a new context, that is a child of the parent context. This is particularly useful in
-cases where some part of the task should be guaranteed to finish before others, but with one caveat: if the parent
-context will be canceled, all child contexts will be canceled as well.
+Some context operations returns a new context: a child of the parent context. This is particularly useful in cases where
+some part of the task should be guaranteed to finish before others, but with one caveat: if the parent context will be
+canceled, all child contexts will be canceled as well.
 
 It is possible to avoid cascade failures using this feature, though. By using context's `Deadline` method it is possible
 to obtain the deadline of the parent context, and set child's context deadline slightly smaller than the parent one:
@@ -343,15 +343,46 @@ This way it is possible to ensure the called methods will always finish before t
 
 ### Overusing language features
 
-TODO
+Even if a language is great it can quickly become a headache if not used properly. That's why this document is supposed
+to promote a healthy use of Go's features. Remember to stick to simple code where possible and keep the advanced
+technologies for later, when they are really useful.
 
-1. Channels: use mutex whenever it makes things simple
-2. Named returns: exception, not a rule
+#### Channels: use mutex whenever it makes things simple
+
+Channels are great. Working with streams of data never has been easier. But this doesn't mean to use them all the time,
+in every single place where a goroutine is in use. Equally good, and in much simpler way, results can be achieved by
+using `sync.Mutex`. When working with a single object or small set it's simply safer to manage the access to the data
+using locking mechanism.
+
+#### Named returns: exception, not a rule
+
+Using named results can be helpful when we plan to defer the recovery after panic. Giving names to return values might
+reduce the number of lines of code by 1, but might raise its complexity a lot in comparison to simply defining a
+variable in the method's body. Also, it is worth to mention named value is not magically receiving a valid value: it is
+still required to initialize the variable with whatever is needed, otherwise it will be `nil`. And this can lead to
+unexpected failures if the initialization will be skipped, e.g. setting attribute of a `nil` struct will cause panic.
+
+#### Adding method parameters to context values
+
+Context is great at passing request-scope values, but it is important not to clutter it with some random data. Put the
+values where they belong: if the variable is supposed to be used by some middleware or instrumentalization, then context
+might be the place where it should live. If a variable is only needed in one or two methods that belong to the
+application domain, then it's definitely better to keep the dependency graph clean and just add the variable to the
+method's definition or some parameter struct.
+
+#### Using panics as a substitute for try..catch
+
+Go's lack of try..catch and the existence of panics might cause some developer to think it's a good opportunity to use
+recover in place of catch. This is wrong on many levels:
+
+- Go developer is supposed to write easy to read code
+- panic can be handled in completely different place and figuring it will be really hard
+
+Treating errors the way they should be treated - as values - is much easier to read and follow.
 
 ### Always optimize code for better performance!
 
 Just kidding, don't do that. Optimize for reading; care more about your coworkers than CPU cycles.
-
 
 ## Links to other guides
 
@@ -360,12 +391,13 @@ TODO: How to make this section short and to the point? We don't want 100+ links 
 
 ### High abstraction level
 
-1.  https://www.gobeyond.dev/ - example repository and a series of blog posts.
-2.  https://threedots.tech/ - example repository and a series of blog posts.
+1. https://www.gobeyond.dev/ - example repository and a series of blog posts.
+2. https://threedots.tech/ - example repository and a series of blog posts.
+
 ### Medium abstraction level
 
-1.  https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html
+1. https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html
 
 ### Low abstraction level
 
-1.  https://github.com/golang/go/wiki/CodeReviewComments
+1. https://github.com/golang/go/wiki/CodeReviewComments
