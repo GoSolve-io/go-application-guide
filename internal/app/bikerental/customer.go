@@ -38,9 +38,9 @@ func (c Customer) Validate() error {
 		return app.NewValidationError("first name is required")
 	}
 
-	// For simplicity we use external library to validate emails.
-	// We can live with it in this case, but in concequence our domain now relies on some external code!
-	// So this is an exception that works only for well defined tasks (like email validation).
+	// For simplicity, we use external library to validate emails.
+	// We can live with it in this case, but in consequence our domain now relies on some external code!
+	// So this is an exception that works only for well-defined tasks (like email validation).
 	if c.Email != "" {
 		if err := checkmail.ValidateFormat(c.Email); err != nil {
 			return app.ValidationError{

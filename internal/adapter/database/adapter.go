@@ -49,6 +49,10 @@ func NewAdapter(
 		return nil, fmt.Errorf("opening postgres db: %w", err)
 	}
 
+	if err = db.Ping(); err != nil {
+		return nil, fmt.Errorf("connection to postgres db failed: %w", err)
+	}
+
 	return &Adapter{
 		db:  db,
 		log: log,

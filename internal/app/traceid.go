@@ -11,7 +11,7 @@ const (
 )
 
 // TraceIDFromCtx returns trace id from context.
-// If id is not present in context, returns emoty string.
+// If id is not present in context, returns empty string.
 func TraceIDFromCtx(ctx context.Context) string {
 	if id, ok := ctx.Value(ctxTraceIDKeyKey).(string); ok {
 		return id
@@ -19,7 +19,7 @@ func TraceIDFromCtx(ctx context.Context) string {
 	return ""
 }
 
-// CtxWithTraceID returns new context with trace id..
+// CtxWithTraceID returns new context with trace id.
 func CtxWithTraceID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, ctxTraceIDKeyKey, id)
 }

@@ -11,7 +11,7 @@ type Bike struct {
 	ID        string
 	ModelName string
 	Weight    float64
-	// PricePerHour in eurocents
+	// PricePerHour in euro-cents
 	PricePerHour int
 }
 
