@@ -78,7 +78,7 @@ func newIncidentsDiscount(resValue int, customer bikerental.Customer, incidents 
 
 // selectOptimalDiscount chooses one discount that should be applied.
 // Rules:
-// - select discount with greatest value.
+// - select discount with the greatest value.
 func selectOptimalDiscount(discounts ...bikerental.Discount) bikerental.Discount {
 	maxAmount := -math.MaxInt64
 	var result bikerental.Discount

@@ -53,7 +53,7 @@ func (s *Service) GetBikeAvailability(ctx context.Context, bikeID string, startT
 	if startTime.Before(time.Now()) {
 		return false, app.NewValidationError("start time has to be in future")
 	}
-	if endTime.Before(startTime) {
+	if !endTime.After(startTime) {
 		return false, app.NewValidationError("end time has to be after end time")
 	}
 
@@ -161,7 +161,7 @@ func (s *Service) CreateReservation(ctx context.Context, req bikerental.CreateRe
 }
 
 // CancelReservation removes reservation by id and bike id.
-// Returns app.ErrNotFound if reservation doesn't exists.
+// Returns app.ErrNotFound if reservation doesn't exist.
 func (s *Service) CancelReservation(ctx context.Context, bikeID string, id string) error {
 	reservation, err := s.reservationsRepo.Get(ctx, id)
 	if err != nil {

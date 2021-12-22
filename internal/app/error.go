@@ -23,7 +23,7 @@ func NewValidationError(message string) error {
 	return ValidationError{Err: errors.New(message)}
 }
 
-// Error fullfills error interface.
+// Error fulfills error interface.
 func (e ValidationError) Error() string {
 	return e.Err.Error()
 }
@@ -44,7 +44,7 @@ func NewConflictError(message string) error {
 	return ConflictError{Err: errors.New(message)}
 }
 
-// Error fullfills error interface.
+// Error fulfills error interface.
 func (e ConflictError) Error() string {
 	return e.Err.Error()
 }

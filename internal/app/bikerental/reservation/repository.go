@@ -13,7 +13,7 @@ type Repository interface {
 	List(context.Context, ListReservationsQuery) ([]bikerental.Reservation, error)
 
 	// Get returns a reservation by id.
-	// Returns app.ErrNotFound if reservation doesn't exists.
+	// Returns app.ErrNotFound if reservation doesn't exist.
 	Get(ctx context.Context, id string) (*bikerental.Reservation, error)
 
 	// Create creates new reservation for a bike.
@@ -22,7 +22,7 @@ type Repository interface {
 	Create(context.Context, bikerental.Reservation) (*bikerental.Reservation, error)
 
 	// SetStatus updates the status of the reservation by its id.
-	// Returns app.ErrNotFound if reservation doesn't exists.
+	// Returns app.ErrNotFound if reservation doesn't exist.
 	SetStatus(ctx context.Context, id string, status bikerental.ReservationStatus) error
 }
 

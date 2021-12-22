@@ -50,7 +50,7 @@ func RunServer(
 
 	go func() {
 		<-ctx.Done()
-		log.Infof("http server: shutting down")
+		log.Info("http server: shutting down")
 		if err := s.Shutdown(context.Background()); err != nil {
 			log.Errorf("http server: failed to shutdown http gateway server: %v", err)
 		}

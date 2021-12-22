@@ -9,7 +9,7 @@ import (
 
 // Discount represents fixed discount for bike rental.
 type Discount struct {
-	// Amount is in eurocents.
+	// Amount is in euro-cents.
 	Amount int
 }
 
@@ -23,7 +23,7 @@ type DiscountRequest struct {
 	Customer Customer
 	Location Location
 	Bike     Bike
-	// ReservationValue in eurocents.
+	// ReservationValue in euro-cents.
 	ReservationValue int
 }
 
