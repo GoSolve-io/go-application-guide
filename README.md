@@ -186,17 +186,203 @@ Nice talk: https://www.youtube.com/watch?v=IKoSsJFdRtI
 
 TODO: Primarily for signaling end of execution to goroutines
 
+Context is a well known concept from other programming languages. To provide some background for someone who never used
+contexts before: it is a way to tie all the requests together and provide a way to stop the execution if needed. It is
+sometimes used to carry request scope variables, but this should not be overused and will be explained in more details
+later.
+
+In Go, it is mostly used to signal end of execution to goroutines and when passing through domain boundaries.
+
+#### Signaling end of execution
+
+Thanks to Go being designed with the concurrency in mind it is common to use goroutines. Goroutines are small and fast
+and benefits gained by using them definitely surpass drawbacks and risks.
+
+Similar to how the errors should be always returned as the last parameter, the methods that are using context should
+always accept it as the first parameter. Also, it makes sense to pass the context even if we don't plan to use it at
+this moment.
+
+There is one thing that might lead to issues: it is not clear when - and if - all goroutines have finished. Long-running
+goroutines can lead to unexpected issues, like unexpectedly altering the object's state or trying to write to an already
+closed channel. Leaving goroutines unattended can lead to resource leak and cause the system's health to degrade over
+time.
+
+That's where the **context** comes to the rescue. Thanks to its ability to signal end of execution we can manage the
+goroutines to a great extent.
+
+The first step is to create a context and decide how do we want to cancel it. There are at least two ways for doing
+this:
+
+- using **cancel** method
+- defining **deadline**
+
+The first use case is very simple and allows the developer to stop the execution at any time by calling the **cancel**
+method returned from **WithCancel** method (other methods return the cancel as well, but let's focus on this one for
+now):
+
+```go
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()
+```
+
+It is important to always cancel the context, that's why deferring call to this method is the usual way of writing the
+code.
+
+Other solution is to define a deadline on the context, so it will get automatically canceled when the time comes. This
+is often used within servers to make sure the caller will not wait forever for the request to be processed:
+
+```go
+ctx, cancel := context.WithDeadline(context.Background(), time.Date(2022, 12, 31, 0, 0, 0))
+defer cancel()
+```
+
+There are two ways of setting the deadline: with the method mentioned above, or with `WithTimeout` that accepts the
+parent context and a `time.Duration`, so it is possible to set the deadline e.g. 30 seconds in the future:
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
+defer cancel()
+```
+
+Now, once the context is ready to use, the goroutines (or any other receiver of the context) needs to simply check
+the `Err` method or listen to the `Done()` channel. By default, as soon as the context gets canceled the `Err()` will
+return `DeadlineExceeded` or `Canceled` error. It is a simple way to check if the execution should proceed:
+
+```go
+func DoSomething(ctx context.Context) error {
+if err := ctx.Err(); err != nil {
+// simply stop
+return fmt.Errorf("do something: %w", err)
+}
+// do stuff
+}
+```
+
+This should work fine in most cases, but what if this method is supposed to take some time? Calling `Err` on every loop
+step will simply litter the code.
+
+The solution for more complex tasks is to listen to the `Done()` channel of the context object. Once context gets
+canceled or times out, the `Done()` channel is closed so all blocked reads will be unlocked. This is the best solution
+when using channels:
+
+// TODO: provide better example here
+
+```go
+func Parent() {
+ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+defer cancel()
+
+ch := make(chan int)
+
+go Child(ctx, ch)
+
+for v := range ch {
+fmt.Println(v)
+}
+}
+
+func Child(ctx context.Context, ch chan<- int) {
+for {
+select {
+case <-time.After(time.Second):
+ch<-rand.Int()
+case <-ctx.Done():
+close(ch)
+return
+}
+}
+}
+```
+
+It is worth to mention that using context is concurrency-safe, so calling `Err` or using the `Done()` channel is safe
+within multiple goroutines.
+
+#### Passing request-scoped values
+
+Another use case for context is to pass request-scoped data across multiple layers and domains. This is often used
+together with tracing, logging and authorization middlewares.
+
+To add a request-scoped value to the context simply use `context.WithValue` method, retrieve it using the
+context's `Value`:
+
+```go
+func Parent(ctx context.Context) {
+valuedContext := context.WithValue(ctx, contextKey, contextValue)
+
+Child(valuedContext)
+}
+
+func Child(ctx context.Context) {
+fmt.Println(ctx.Value(contextKey))
+}
+```
+
+This feature can be used to add trace ID to the context, as shown in the
+example [code](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/transport/grpc/httpgateway/middleware.go#L14)
+and used later with [logger](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/app/log.go#L26).
+
+#### Context inheritance
+
+Some context operations returns a new context: a child of the parent context. This is particularly useful in cases where
+some part of the task should be guaranteed to finish before others, but with one caveat: if the parent context will be
+canceled, all child contexts will be canceled as well.
+
+It is possible to avoid cascade failures using this feature, though. By using context's `Deadline` method it is possible
+to obtain the deadline of the parent context, and set child's context deadline slightly smaller than the parent one:
+
+```go
+parentDeadline, hasDeadline := parentCtx.Deadline()
+if !hasDeadline {
+parentDeadline = time.Now().Add(5 * time.Second)
+}
+
+childContext, childCancel := context.WithDeadline(parentCtx, parentDeadline.Sub(time.Second))
+```
+
+This way it is possible to ensure the called methods will always finish before the parent context will time out.
+
 ### Overusing language features
 
-TODO
+Even if a language is great it can quickly become a headache if not used properly. That's why this document is supposed
+to promote a healthy use of Go's features. Remember to stick to simple code where possible and keep the advanced
+technologies for later, when they are really useful.
 
-1. Channels: use mutex whenever it makes things simple
-2. Named returns: exception, not a rule
+#### Channels: use mutex whenever it makes things simple
+
+Channels are great. Working with streams of data never has been easier. But this doesn't mean to use them all the time,
+in every single place where a goroutine is in use. Equally good, and in much simpler way, results can be achieved by
+using `sync.Mutex`. When working with a single object or small set it's simply safer to manage the access to the data
+using locking mechanism.
+
+#### Named returns: exception, not a rule
+
+Using named results can be helpful when we plan to defer the recovery after panic. Giving names to return values might
+reduce the number of lines of code by 1, but might raise its complexity a lot in comparison to simply defining a
+variable in the method's body. Also, it is worth to mention named value is not magically receiving a valid value: it is
+still required to initialize the variable with whatever is needed, otherwise it will be `nil`. And this can lead to
+unexpected failures if the initialization will be skipped, e.g. setting attribute of a `nil` struct will cause panic.
+
+#### Adding method parameters to context values
+
+Context is great at passing request-scope values, but it is important not to clutter it with some random data. Put the
+values where they belong: if the variable is supposed to be used by some middleware or instrumentalization, then context
+might be the place where it should live. If a variable is only needed in one or two methods that belong to the
+application domain, then it's definitely better to keep the dependency graph clean and just add the variable to the
+method's definition or some parameter struct.
+
+#### Using panics as a substitute for try..catch
+
+Go's lack of try..catch and the existence of panics might cause some developer to think it's a good opportunity to use
+recover in place of catch. This is wrong on many levels:
+
+- Go developer is supposed to write easy to read code
+- panic can be handled in completely different place and figuring it will be really hard
+
+Treating errors the way they should be treated - as values - is much easier to read and follow.
 
 ### Always optimize code for better performance!
 
 Just kidding, don't do that. Optimize for reading; care more about your coworkers than CPU cycles.
-
 
 ## Links to other guides
 
@@ -205,12 +391,13 @@ TODO: How to make this section short and to the point? We don't want 100+ links 
 
 ### High abstraction level
 
-1.  https://www.gobeyond.dev/ - example repository and a series of blog posts.
-2.  https://threedots.tech/ - example repository and a series of blog posts.
+1. https://www.gobeyond.dev/ - example repository and a series of blog posts.
+2. https://threedots.tech/ - example repository and a series of blog posts.
+
 ### Medium abstraction level
 
-1.  https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html
+1. https://dave.cheney.net/practical-go/presentations/gophercon-singapore-2019.html
 
 ### Low abstraction level
 
-1.  https://github.com/golang/go/wiki/CodeReviewComments
+1. https://github.com/golang/go/wiki/CodeReviewComments
