@@ -130,28 +130,6 @@ TODO
 
 ## Common functionalities in backend services
 
-### Logging
-
-TODO
-
-1. What does "log" mean?
-   1. Common misconception: this is not the same as output in your terminal
-      1. Unless there is a special infrastructure to create structured logs, each log is just one line in the app's output stream
-      2. These lines of text are usually collected by some aggregator from multiple running instances
-      3. If one instance logs 3 lines, those lines will often be spread across other lines from other instances
-   2. Conclusion: one log should contain all the information about an event
-      1. Don't log messages like "function started" or "function ended". The result aggregated from all running instances will be rather useless.
-2. Standard error logging
-   1. https://blog.golang.org/go1.13-errors
-3. Other logs
-   1. What to log? (Actually, more importantly, what not to log)
-      1. Incoming requests
-      2. Outgoing requests
-      3. System state changes
-   2. How it relates to app layers
-   3. Put log together into stories using trace id
-      1. Later in microservice architecture - distributed transaction ids
-
 ### Caching
 
 TODO
@@ -165,6 +143,46 @@ TODO
 
 1. How it relates to app layers (similar to logging)
 
+Instrumentation allows to enhance the developer's visibility on actual application performance and behavior. It consists of several elements:
+- logging
+- tracing
+- metrics
+
+It is important to understand one thing: instrumentation is not only supposed to support developers. It is also supposed to provide vital information to the operators of the application. Even for smaller apps that are supposed to serve content to small number of clients it's still worth to implement it.
+
+#### Logging
+
+TODO
+
+1. What does "log" mean?
+    1. Common misconception: this is not the same as output in your terminal
+        1. Unless there is a special infrastructure to create structured logs, each log is just one line in the app's output stream
+        2. These lines of text are usually collected by some aggregator from multiple running instances
+        3. If one instance logs 3 lines, those lines will often be spread across other lines from other instances
+    2. Conclusion: one log should contain all the information about an event
+        1. Don't log messages like "function started" or "function ended". The result aggregated from all running instances will be rather useless.
+2. Standard error logging
+    1. https://blog.golang.org/go1.13-errors
+3. Other logs
+    1. What to log? (Actually, more importantly, what not to log)
+        1. Incoming requests
+        2. Outgoing requests
+        3. System state changes
+    2. How it relates to app layers
+    3. Put log together into stories using trace id
+        1. Later in microservice architecture - distributed transaction ids
+
+#### Tracing
+
+Over past several years the concept of distributed tracing became one of the most important buzzwords. Go offers a lot of ready to use libraries that will allow to use the tracing to its extents, but the very basic tracing is simpler than it might sound. 
+
+For basic distributed tracing a unique key, shared between all application's modules, has to be logged. This approach can be seen in [this](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/transport/grpc/httpgateway/middleware.go#L14) example. This will not produce fancy diagrams or maps, but it's a good starting point.
+
+It is also possible to use paid service providers, like [DataDog](https://www.datadoghq.com/), that allows to not only trace each request inside the application, but also provides ready to use libraries for other languages, like Flutter, Java or iOS, so it is possible to monitor every step of the process. This kind of services generally provides more details and are capable of creating flow charts based on the tracing informations. 
+
+#### Metrics
+
+Metrics can be used to monitor the performance and error rate of the application. 
 
 ## Other high-level concepts of go programming
 
