@@ -182,7 +182,7 @@ It is also possible to use paid service providers, like [DataDog](https://www.da
 
 #### Metrics
 
-Metrics can be used to monitor the performance and error rate of the application. 
+Metrics can be used to monitor the performance and error rate of the application. By simply counting the number and duration of the requests it is possible to predict issues that will come. This is a perfect tool to help with planning the future of the application when the number of clients will start to grow. 
 
 ## Other high-level concepts of go programming
 

@@ -3,6 +3,7 @@ package httpgateway
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/nglogic/go-application-guide/internal/app"
@@ -19,7 +20,7 @@ func HandlerWithTraceID(h http.Handler) http.Handler {
 		}
 
 		ctx := app.CtxWithTraceID(r.Context(), traceID)
-		r = r.WithContext(ctx)
+		r = r.Clone(ctx)
 		h.ServeHTTP(w, r)
 	})
 }
@@ -31,7 +32,28 @@ func HandlerWithLogCtx(h http.Handler) http.Handler {
 		ctx = app.CtxWithLogField(ctx, "http.url", r.URL.String())
 		ctx = app.CtxWithLogField(ctx, "http.method", r.Method)
 
-		r = r.WithContext(ctx)
+		r = r.Clone(ctx)
 		h.ServeHTTP(w, r)
+	})
+}
+
+// HandlerWithMetrics wraps handler with middleware adding metrics details
+func HandlerWithMetrics(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		start := time.Now()
+
+		wrappedResponse := NewResponseWrapper(w)
+		defer func() {
+			duration := time.Since(start)
+			returnedStatusCode := wrappedResponse.StatusCode
+
+			app.CtxWithLogField(ctx, "metrics_duration", duration.String())
+			app.CtxWithLogField(ctx, "metrics_http_status", fmt.Sprintf("%d", returnedStatusCode))
+		}()
+
+		r = r.Clone(ctx)
+		h.ServeHTTP(wrappedResponse, r)
 	})
 }
