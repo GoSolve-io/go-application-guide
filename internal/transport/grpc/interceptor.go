@@ -2,8 +2,9 @@ package grpc
 
 import (
 	context "context"
-	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"time"
+
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 
 	"github.com/google/uuid"
 	"github.com/nglogic/go-application-guide/internal/app"
