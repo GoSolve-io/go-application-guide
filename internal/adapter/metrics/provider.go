@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"strings"
 	"sync"
 	"time"
@@ -22,12 +22,15 @@ type Provider interface {
 type DummyMetrics struct {
 	Counts    map[string]uint64
 	Durations map[string][]time.Duration
+	logger    logrus.FieldLogger
 	sync.Mutex
 }
 
 // NewDummy returns a new dummy metrics
-func NewDummy() *DummyMetrics {
-	return &DummyMetrics{}
+func NewDummy(logger logrus.FieldLogger) *DummyMetrics {
+	return &DummyMetrics{
+		logger: logger,
+	}
 }
 
 // Count increases the count for given tags
@@ -84,7 +87,7 @@ func (dm *DummyMetrics) Flush() {
 	defer dm.Unlock()
 
 	for key, value := range dm.Counts {
-		fmt.Printf("Count: %s - %d\n", key, value)
+		dm.logger.Printf("Count: %s - %d\n", key, value)
 		delete(dm.Counts, key)
 	}
 
@@ -93,7 +96,7 @@ func (dm *DummyMetrics) Flush() {
 		for _, d := range durations {
 			avg = avg + d.Nanoseconds()
 		}
-		fmt.Printf("Duration: %s - %d\n", key, avg)
+		dm.logger.Printf("Duration: %s - %d\n", key, avg)
 		delete(dm.Durations, key)
 	}
 }

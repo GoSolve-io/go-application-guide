@@ -81,7 +81,7 @@ func main() {
 		log.Fatalf("creating reservation service: %v", err)
 	}
 
-	metricProvider := metrics.NewDummy()
+	metricProvider := metrics.NewDummy(log)
 
 	srv, err := grpc.NewServer(bikeService, reservationService, log)
 	if err != nil {
