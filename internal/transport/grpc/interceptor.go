@@ -39,7 +39,6 @@ func MetricsUnaryServerInterceptor(m metrics.Provider) grpc.UnaryServerIntercept
 		}
 
 		resp, err := handler(ctx, req)
-
 		if err != nil {
 			if mErr := m.Count("grpc.errors_count", info.FullMethod); mErr != nil {
 				// do something about the metric error

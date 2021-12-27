@@ -2,9 +2,10 @@ package httpgateway
 
 import (
 	"fmt"
-	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net/http"
 	"time"
+
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 
 	"github.com/google/uuid"
 	"github.com/nglogic/go-application-guide/internal/app"

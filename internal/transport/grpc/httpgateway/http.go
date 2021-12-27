@@ -4,9 +4,10 @@ import (
 	context "context"
 	"errors"
 	"fmt"
-	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net/http"
 	"time"
+
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"

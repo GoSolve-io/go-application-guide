@@ -4,8 +4,9 @@ import (
 	context "context"
 	"errors"
 	"fmt"
-	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net"
+
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
