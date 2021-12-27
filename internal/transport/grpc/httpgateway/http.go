@@ -36,7 +36,7 @@ func RunServer(
 	var handler http.Handler = mux
 	handler = HandlerWithLogCtx(handler)
 	handler = HandlerWithTraceID(handler)
-	handler = HandlerWithMetrics(handler)
+	handler = HandlerWithMetrics(handler, log)
 
 	// See this great explanation on http timeouts:
 	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
