@@ -184,6 +184,8 @@ It is also possible to use paid service providers, like [DataDog](https://www.da
 
 Metrics can be used to monitor the performance and error rate of the application. By simply counting the number and duration of the requests it is possible to predict issues that will come. This is a perfect tool to help with planning the future of the application when the number of clients will start to grow. 
 
+Important part of metrics is the aggregation of the results. This can be achieved by using external application or build own implementation, for example with ElasticSearch backend. 
+
 ## Other high-level concepts of go programming
 
 TODO
@@ -431,8 +433,6 @@ missing? Is it missing all pieces, or only one of them? Wrapping errors definite
 using **Is** and **As** methods still allows to handle them accordingly.
 
 ### Context
-
-TODO: Primarily for signaling end of execution to goroutines
 
 Context is a well known concept from other programming languages. To provide some background for someone who never used
 contexts before: it is a way to tie all the requests together and provide a way to stop the execution if needed. It is
