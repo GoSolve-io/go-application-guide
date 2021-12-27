@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/caarlos0/env/v6"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/caarlos0/env/v6"
 
 	"github.com/nglogic/go-application-guide/internal/adapter/database"
 	"github.com/nglogic/go-application-guide/internal/adapter/http/incidents"
