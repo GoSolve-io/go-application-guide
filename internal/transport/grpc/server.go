@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 
-	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"
@@ -14,6 +13,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Server implements rpc ServiceServer.
