@@ -225,6 +225,7 @@ func RunServer(
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
 		grpc.UnaryInterceptor(LogCtxUnaryServerInterceptor()),
+		grpc.UnaryInterceptor(MetricsUnaryServerInterceptor()),
 	)
 	bikerentalv1.RegisterBikeRentalServiceServer(s, srv)
 	go func() {

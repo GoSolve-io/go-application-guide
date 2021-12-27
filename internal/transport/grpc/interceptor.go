@@ -2,6 +2,7 @@ package grpc
 
 import (
 	context "context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,13 +30,14 @@ func LogCtxUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 
 // MetricsUnaryServerInterceptor returns a new unary server interceptor adding metrics to context for logging.
 func MetricsUnaryServerInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		start := time.Now()
-		defer func() {
-			// TODO: use logger here, instead of adding this to context
-			app.CtxWithLogField(ctx, "metrics_grpc_duration", time.Since(start).String())
-		}()
 
-		return handler(ctx, req)
+		resp, err := handler(ctx, req)
+
+		app.CtxWithLogField(ctx, "metrics_grpc_duration", time.Since(start).String())
+		app.CtxWithLogField(ctx, "metric_grpc_is_error", fmt.Sprintf("%v", err != nil))
+
+		return resp, err
 	}
 }
