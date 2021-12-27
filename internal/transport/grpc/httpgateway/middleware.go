@@ -2,6 +2,7 @@ package httpgateway
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -37,8 +38,8 @@ func HandlerWithLogCtx(h http.Handler) http.Handler {
 	})
 }
 
-// HandlerWithMetrics wraps handler with middleware adding metrics details
-func HandlerWithMetrics(h http.Handler) http.Handler {
+// HandlerWithMetrics wraps handler with middleware adding metrics details.
+func HandlerWithMetrics(h http.Handler, l logrus.FieldLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -46,11 +47,9 @@ func HandlerWithMetrics(h http.Handler) http.Handler {
 
 		wrappedResponse := NewResponseWrapper(w)
 		defer func() {
-			duration := time.Since(start)
-			returnedStatusCode := wrappedResponse.StatusCode
-
-			app.CtxWithLogField(ctx, "metrics_duration", duration.String())
-			app.CtxWithLogField(ctx, "metrics_http_status", fmt.Sprintf("%d", returnedStatusCode))
+			// TODO: use logger here, but don't log duplicate information
+			app.CtxWithLogField(ctx, "metrics_duration", time.Since(start).String())
+			app.CtxWithLogField(ctx, "metrics_http_status", fmt.Sprintf("%d", wrappedResponse.StatusCode))
 		}()
 
 		r = r.Clone(ctx)
