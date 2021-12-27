@@ -46,22 +46,11 @@ func HandlerWithMetrics(h http.Handler, m metrics.Provider) http.Handler {
 
 		start := time.Now()
 
-		if err := m.Count(r.Method, r.URL.Path, "started"); err != nil {
-			// do something with the error, of necessary.
-		}
-
 		wrappedResponse := NewResponseWrapper(w)
 		defer func() {
-			// counting started and finished methods separately, so we can notice unhandled panics.
-			if err := m.Count(r.Method, r.URL.Path, "finished"); err != nil {
-				// do something with the error, of necessary.
-			}
-			if err := m.Count(r.Method, r.URL.Path, fmt.Sprintf("%d", wrappedResponse.StatusCode)); err != nil {
-				// again, do something here.
-			}
-			if err := m.Duration(time.Since(start), r.Method, r.URL.Path); err != nil {
-				// or ignore the error if we don't care about the metrics - but we should care about it!
-			}
+			m.Count(r.Method, r.URL.Path)
+			m.Count(r.Method, r.URL.Path, fmt.Sprintf("%d", wrappedResponse.StatusCode))
+			m.Duration(time.Since(start), r.Method, r.URL.Path)
 		}()
 
 		r = r.Clone(ctx)

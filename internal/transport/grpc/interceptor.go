@@ -34,20 +34,14 @@ func MetricsUnaryServerInterceptor(m metrics.Provider) grpc.UnaryServerIntercept
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		start := time.Now()
 
-		if mErr := m.Count("grpc.invocation", info.FullMethod); mErr != nil {
-			// probably escalate the error, but do not crash the app.
-		}
+		m.Count("grpc.invocation", info.FullMethod)
 
 		resp, err := handler(ctx, req)
 		if err != nil {
-			if mErr := m.Count("grpc.errors_count", info.FullMethod); mErr != nil {
-				// do something about the metric error.
-			}
+			m.Count("grpc.errors_count", info.FullMethod)
 		}
 
-		if mErr := m.Duration(time.Since(start), info.FullMethod); mErr != nil {
-			// do something else.
-		}
+		m.Duration(time.Since(start), info.FullMethod)
 
 		return resp, err
 	}
