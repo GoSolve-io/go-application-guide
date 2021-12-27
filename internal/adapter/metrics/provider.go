@@ -12,14 +12,14 @@ const (
 	bufferSize = 50
 )
 
-// Provider is a dummy metrics example
+// Provider is a dummy metrics example.
 type Provider interface {
 	Count(tags ...string) error
 	Duration(duration time.Duration, tags ...string) error
 	Flush()
 }
 
-// DummyMetrics implements some dummy metrics provider
+// DummyMetrics implements some dummy metrics provider.
 type DummyMetrics struct {
 	Counts    map[string]uint64
 	Durations map[string][]time.Duration
@@ -27,14 +27,14 @@ type DummyMetrics struct {
 	sync.Mutex
 }
 
-// NewDummy returns a new dummy metrics
+// NewDummy returns a new dummy metrics.
 func NewDummy(logger logrus.FieldLogger) *DummyMetrics {
 	return &DummyMetrics{
 		logger: logger,
 	}
 }
 
-// Count increases the count for given tags
+// Count increases the count for given tags.
 func (dm *DummyMetrics) Count(tags ...string) error {
 	if len(tags) == 0 {
 		return ErrInvalidTags
@@ -56,7 +56,7 @@ func (dm *DummyMetrics) Count(tags ...string) error {
 	return nil
 }
 
-// Duration stores the duration for given tags, will log the average
+// Duration stores the duration for given tags, will log the average.
 func (dm *DummyMetrics) Duration(duration time.Duration, tags ...string) error {
 	if len(tags) == 0 {
 		return ErrInvalidTags
@@ -82,7 +82,7 @@ func (dm *DummyMetrics) Duration(duration time.Duration, tags ...string) error {
 	return nil
 }
 
-// Flush flushed the stored data to stdout
+// Flush flushed the stored data to stdout.
 func (dm *DummyMetrics) Flush() {
 	dm.Lock()
 	defer dm.Unlock()
@@ -95,9 +95,9 @@ func (dm *DummyMetrics) Flush() {
 	for key, durations := range dm.Durations {
 		var avg int64
 		for _, d := range durations {
-			avg = avg + d.Nanoseconds()
+			avg += d.Nanoseconds()
 		}
-		avg = avg / int64(len(durations))
+		avg /= int64(len(durations))
 		dm.logger.Printf("Duration: %s - %d\n", key, avg)
 		delete(dm.Durations, key)
 	}

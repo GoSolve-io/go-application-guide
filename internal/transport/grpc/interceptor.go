@@ -35,18 +35,18 @@ func MetricsUnaryServerInterceptor(m metrics.Provider) grpc.UnaryServerIntercept
 		start := time.Now()
 
 		if mErr := m.Count("grpc.invocation", info.FullMethod); mErr != nil {
-			// probably escalate the error, but do not crash the app
+			// probably escalate the error, but do not crash the app.
 		}
 
 		resp, err := handler(ctx, req)
 		if err != nil {
 			if mErr := m.Count("grpc.errors_count", info.FullMethod); mErr != nil {
-				// do something about the metric error
+				// do something about the metric error.
 			}
 		}
 
 		if mErr := m.Duration(time.Since(start), info.FullMethod); mErr != nil {
-			// do something else
+			// do something else.
 		}
 
 		return resp, err

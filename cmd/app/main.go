@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 
 	"github.com/caarlos0/env/v6"
 
