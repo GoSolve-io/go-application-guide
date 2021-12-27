@@ -2,7 +2,7 @@ package grpc
 
 import (
 	context "context"
-	"fmt"
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,14 +29,25 @@ func LogCtxUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 }
 
 // MetricsUnaryServerInterceptor returns a new unary server interceptor adding metrics to context for logging.
-func MetricsUnaryServerInterceptor() grpc.UnaryServerInterceptor {
+func MetricsUnaryServerInterceptor(m metrics.Provider) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		start := time.Now()
 
+		if mErr := m.Count("grpc.invocation", info.FullMethod); mErr != nil {
+			// probably escalate the error, but do not crash the app
+		}
+
 		resp, err := handler(ctx, req)
 
-		app.CtxWithLogField(ctx, "metrics_grpc_duration", time.Since(start).String())
-		app.CtxWithLogField(ctx, "metric_grpc_is_error", fmt.Sprintf("%v", err != nil))
+		if err != nil {
+			if mErr := m.Count("grpc.errors_count", info.FullMethod); mErr != nil {
+				// do something about the metric error
+			}
+		}
+
+		if mErr := m.Duration(time.Since(start), info.FullMethod); mErr != nil {
+			// do something else
+		}
 
 		return resp, err
 	}

@@ -2,10 +2,9 @@ package httpgateway
 
 import (
 	"fmt"
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net/http"
 	"time"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/google/uuid"
 	"github.com/nglogic/go-application-guide/internal/app"
@@ -40,17 +39,28 @@ func HandlerWithLogCtx(h http.Handler) http.Handler {
 }
 
 // HandlerWithMetrics wraps handler with middleware adding metrics details.
-func HandlerWithMetrics(h http.Handler, l logrus.FieldLogger) http.Handler {
+func HandlerWithMetrics(h http.Handler, m metrics.Provider) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		start := time.Now()
 
+		if err := m.Count(r.Method, r.URL.Path, "started"); err != nil {
+			// do something with the error, of necessary
+		}
+
 		wrappedResponse := NewResponseWrapper(w)
 		defer func() {
-			// TODO: use logger here, but don't log duplicate information
-			app.CtxWithLogField(ctx, "metrics_duration", time.Since(start).String())
-			app.CtxWithLogField(ctx, "metrics_http_status", fmt.Sprintf("%d", wrappedResponse.StatusCode))
+			// counting started and finished methods separately, so we can notice unhandled panics
+			if err := m.Count(r.Method, r.URL.Path, "finished"); err != nil {
+				// do something with the error, of necessary
+			}
+			if err := m.Count(r.Method, r.URL.Path, fmt.Sprintf("%d", wrappedResponse.StatusCode)); err != nil {
+				// again, do something here
+			}
+			if err := m.Duration(time.Since(start), r.Method, r.URL.Path); err != nil {
+				// or ignore the error if we don't care about the metrics - but we should care about it!
+			}
 		}()
 
 		r = r.Clone(ctx)

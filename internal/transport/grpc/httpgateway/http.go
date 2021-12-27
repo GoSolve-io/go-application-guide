@@ -4,6 +4,7 @@ import (
 	context "context"
 	"errors"
 	"fmt"
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net/http"
 	"time"
 
@@ -25,6 +26,7 @@ const (
 func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
+	met metrics.Provider,
 	srv bikerentalv1.BikeRentalServiceServer,
 	addr string,
 ) error {
@@ -36,7 +38,7 @@ func RunServer(
 	var handler http.Handler = mux
 	handler = HandlerWithLogCtx(handler)
 	handler = HandlerWithTraceID(handler)
-	handler = HandlerWithMetrics(handler, log)
+	handler = HandlerWithMetrics(handler, met)
 
 	// See this great explanation on http timeouts:
 	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/

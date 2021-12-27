@@ -4,6 +4,7 @@ import (
 	context "context"
 	"errors"
 	"fmt"
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net"
 
 	"github.com/nglogic/go-application-guide/internal/app"
@@ -219,13 +220,14 @@ func (s *Server) logInfo(ctx context.Context, endpoint string, format string, ar
 func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
+	met metrics.Provider,
 	srv bikerentalv1.BikeRentalServiceServer,
 	lis net.Listener,
 ) error {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
 		grpc.UnaryInterceptor(LogCtxUnaryServerInterceptor()),
-		grpc.UnaryInterceptor(MetricsUnaryServerInterceptor()),
+		grpc.UnaryInterceptor(MetricsUnaryServerInterceptor(met)),
 	)
 	bikerentalv1.RegisterBikeRentalServiceServer(s, srv)
 	go func() {

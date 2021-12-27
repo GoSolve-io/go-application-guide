@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 	"net"
 	"net/http"
 	"os"
@@ -80,6 +81,8 @@ func main() {
 		log.Fatalf("creating reservation service: %v", err)
 	}
 
+	metricProvider := metrics.NewDummy()
+
 	srv, err := grpc.NewServer(bikeService, reservationService, log)
 	if err != nil {
 		log.Fatalf("creating new server: %v", err)
@@ -96,7 +99,7 @@ func main() {
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		if err := httpgateway.RunServer(ctx, log, srv, conf.HTTPServerAddr); err != nil {
+		if err := httpgateway.RunServer(ctx, log, metricProvider, srv, conf.HTTPServerAddr); err != nil {
 			return fmt.Errorf("http server: %w", err)
 		}
 		return nil
@@ -106,7 +109,7 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("creating net listener: %w", err)
 		}
-		if err = grpc.RunServer(ctx, log, srv, l); err != nil {
+		if err = grpc.RunServer(ctx, log, metricProvider, srv, l); err != nil {
 			return fmt.Errorf("grpc server: %w", err)
 		}
 		return nil
