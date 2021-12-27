@@ -96,6 +96,7 @@ func (dm *DummyMetrics) Flush() {
 		for _, d := range durations {
 			avg = avg + d.Nanoseconds()
 		}
+		avg = avg / int64(len(durations))
 		dm.logger.Printf("Duration: %s - %d\n", key, avg)
 		delete(dm.Durations, key)
 	}
