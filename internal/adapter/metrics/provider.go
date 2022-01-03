@@ -14,8 +14,8 @@ const (
 
 // Provider is a dummy metrics example.
 type Provider interface {
-	Count(tags ...string) error
-	Duration(duration time.Duration, tags ...string) error
+	Count(tags ...string)
+	Duration(duration time.Duration, tags ...string)
 	Flush()
 }
 
@@ -35,9 +35,9 @@ func NewDummy(logger logrus.FieldLogger) *DummyMetrics {
 }
 
 // Count increases the count for given tags.
-func (dm *DummyMetrics) Count(tags ...string) error {
+func (dm *DummyMetrics) Count(tags ...string) {
 	if len(tags) == 0 {
-		return ErrInvalidTags
+		return
 	}
 
 	dm.Lock()
@@ -52,18 +52,16 @@ func (dm *DummyMetrics) Count(tags ...string) error {
 	}
 
 	dm.Counts[key]++
-
-	return nil
 }
 
 // Duration stores the duration for given tags, will log the average.
-func (dm *DummyMetrics) Duration(duration time.Duration, tags ...string) error {
+func (dm *DummyMetrics) Duration(duration time.Duration, tags ...string) {
 	if len(tags) == 0 {
-		return ErrInvalidTags
+		return
 	}
 
 	if duration == 0 {
-		return ErrInvalidAttribute
+		return
 	}
 
 	dm.Lock()
@@ -78,8 +76,6 @@ func (dm *DummyMetrics) Duration(duration time.Duration, tags ...string) error {
 	}
 
 	dm.Durations[key] = append(dm.Durations[key], duration)
-
-	return nil
 }
 
 // Flush flushed the stored data to stdout.
