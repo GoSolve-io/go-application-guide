@@ -2,6 +2,9 @@ package grpc
 
 import (
 	context "context"
+	"time"
+
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
 
 	"github.com/google/uuid"
 	"github.com/nglogic/go-application-guide/internal/app"
@@ -23,5 +26,23 @@ func LogCtxUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		ctx = app.CtxWithLogField(ctx, "grpc.method", info.FullMethod)
 
 		return handler(ctx, req)
+	}
+}
+
+// MetricsUnaryServerInterceptor returns a new unary server interceptor adding metrics to context for logging.
+func MetricsUnaryServerInterceptor(m metrics.Provider) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		start := time.Now()
+
+		m.Count("grpc.invocation", info.FullMethod)
+
+		resp, err := handler(ctx, req)
+		if err != nil {
+			m.Count("grpc.errors_count", info.FullMethod)
+		}
+
+		m.Duration(time.Since(start), info.FullMethod)
+
+		return resp, err
 	}
 }

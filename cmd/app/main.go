@@ -9,6 +9,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
+
+	"github.com/caarlos0/env/v6"
+
 	"github.com/nglogic/go-application-guide/internal/adapter/database"
 	"github.com/nglogic/go-application-guide/internal/adapter/http/incidents"
 	"github.com/nglogic/go-application-guide/internal/adapter/http/weather"
@@ -78,6 +82,8 @@ func main() {
 		log.Fatalf("creating reservation service: %v", err)
 	}
 
+	metricProvider := metrics.NewDummy(log)
+
 	srv, err := grpc.NewServer(bikeService, reservationService, log)
 	if err != nil {
 		log.Fatalf("creating new server: %v", err)
@@ -94,7 +100,7 @@ func main() {
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		if err := httpgateway.RunServer(ctx, log, srv, conf.HTTPServerAddr); err != nil {
+		if err := httpgateway.RunServer(ctx, log, metricProvider, srv, conf.HTTPServerAddr); err != nil {
 			return fmt.Errorf("http server: %w", err)
 		}
 		return nil
@@ -104,7 +110,7 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("creating net listener: %w", err)
 		}
-		if err = grpc.RunServer(ctx, log, srv, l); err != nil {
+		if err = grpc.RunServer(ctx, log, metricProvider, srv, l); err != nil {
 			return fmt.Errorf("grpc server: %w", err)
 		}
 		return nil
@@ -112,4 +118,30 @@ func main() {
 	if err := g.Wait(); err != nil {
 		log.Error(err)
 	}
+}
+
+type config struct {
+	HTTPServerAddr string `env:"HTTP_SERVER_ADDR" envDefault:":8080"`
+	GRPCServerAddr string `env:"GRPC_SERVER_ADDR" envDefault:":9090"`
+	LogLevel       string `env:"LOG_LEVEL" envDefault:"info"`
+
+	PostgresDB            string `env:"POSTGRES_DB" envDefault:"testdb"`
+	PostgresUser          string `env:"POSTGRES_USER" envDefault:"postgres"`
+	PostgresPass          string `env:"POSTGRES_PASS" envDefault:"password"`
+	PostgresHostPort      string `env:"POSTGRES_HOSTPORT" envDefault:"localhost:5432"`
+	PostgresMigrationsDir string `env:"POSTGRES_MIGRATIONS_DIR" envDefault:"configs/postgresql"`
+
+	MetaweatherAddr    string        `env:"METAWEATHER_ADDR" envDefault:"https://www.metaweather.com"`
+	MetaweatherTimeout time.Duration `env:"METAWEATHER_TIMEOUT" envDefault:"10s"`
+
+	BikewiseAddr    string        `env:"BIKEWISE_ADDR" envDefault:"https://bikewise.org/api"`
+	BikewiseTimeout time.Duration `env:"BIKEWISE_TIMEOUT" envDefault:"10s"`
+}
+
+func newConfig() (config, error) {
+	cfg := config{}
+	if err := env.Parse(&cfg); err != nil {
+		return cfg, fmt.Errorf("decoding config from env: %w", err)
+	}
+	return cfg, nil
 }

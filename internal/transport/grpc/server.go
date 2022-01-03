@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"net"
 
-	empty "github.com/golang/protobuf/ptypes/empty"
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
+
 	"github.com/nglogic/go-application-guide/internal/app"
 	"github.com/nglogic/go-application-guide/internal/app/bikerental"
 	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"
@@ -14,6 +15,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Server implements rpc ServiceServer.
@@ -219,12 +221,14 @@ func (s *Server) logInfo(ctx context.Context, endpoint string, format string, ar
 func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
+	met metrics.Provider,
 	srv bikerentalv1.BikeRentalServiceServer,
 	lis net.Listener,
 ) error {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(TraceIDUnaryServerInterceptor()),
 		grpc.UnaryInterceptor(LogCtxUnaryServerInterceptor()),
+		grpc.UnaryInterceptor(MetricsUnaryServerInterceptor(met)),
 	)
 	bikerentalv1.RegisterBikeRentalServiceServer(s, srv)
 	go func() {

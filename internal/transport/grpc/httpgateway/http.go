@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nglogic/go-application-guide/internal/adapter/metrics"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nglogic/go-application-guide/pkg/api/bikerentalv1"
 	"github.com/sirupsen/logrus"
@@ -25,6 +27,7 @@ const (
 func RunServer(
 	ctx context.Context,
 	log logrus.FieldLogger,
+	met metrics.Provider,
 	srv bikerentalv1.BikeRentalServiceServer,
 	addr string,
 ) error {
@@ -36,6 +39,7 @@ func RunServer(
 	var handler http.Handler = mux
 	handler = HandlerWithLogCtx(handler)
 	handler = HandlerWithTraceID(handler)
+	handler = HandlerWithMetrics(handler, met)
 
 	// See this great explanation on http timeouts:
 	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
