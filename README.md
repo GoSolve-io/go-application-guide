@@ -111,6 +111,11 @@ Let's start with explanation of example project, that will be used to talk about
 
 ## Testing
 
+Testing goals:
+- speed up development - no need to spin up a large system with all the dependencies
+- regressions - make sure the new changes did not break anything that was here before
+- explain the purpose of the code behavior - adding description to the test might provide some context on why this is expected to work this way
+
 TODO: **need help here, open for any discussion**
 
 ### Unit tests
