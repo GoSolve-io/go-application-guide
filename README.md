@@ -17,14 +17,32 @@ Table of contents
     - [Unit tests](#unit-tests)
     - [Integration tests](#integration-tests)
   - [Common functionalities in backend services](#common-functionalities-in-backend-services)
-    - [Logging](#logging)
     - [Caching](#caching)
     - [Instrumentation](#instrumentation)
+      - [Logging](#logging)
+      - [Tracing](#tracing)
+      - [Metrics](#metrics)
   - [Other high-level concepts of go programming](#other-high-level-concepts-of-go-programming)
     - [Style and linters. Optimize for reading, not for writing](#style-and-linters-optimize-for-reading-not-for-writing)
     - [Error handling](#error-handling)
+      - [Error type](#error-type)
+      - [Returning errors](#returning-errors)
+      - [Sentinel errors](#sentinel-errors)
+      - [Wrapping errors](#wrapping-errors)
+      - [SOLID compliant errors](#solid-compliant-errors)
+      - [Custom error types](#custom-error-types)
+      - [Checking error type](#checking-error-type)
+      - [Handling unexpected panics](#handling-unexpected-panics)
+      - [Anti-patterns](#anti-patterns)
     - [Context](#context)
+      - [Signaling end of execution](#signaling-end-of-execution)
+      - [Passing request-scoped values](#passing-request-scoped-values)
+      - [Context inheritance](#context-inheritance)
     - [Overusing language features](#overusing-language-features)
+      - [Channels](#channels-use-mutex-whenever-it-makes-things-simple)
+      - [Named returns](#named-returns-exception-not-a-rule)
+      - [Parameters in context](#adding-method-parameters-to-context-values)
+      - [Using panics to replace try...catch](#using-panics-as-a-substitute-for-trycatch)
     - [Always optimize code for better performance!](#always-optimize-code-for-better-performance)
   - [Links to other guides](#links-to-other-guides)
     - [High abstraction level](#high-abstraction-level)
@@ -111,6 +129,11 @@ Let's start with explanation of example project, that will be used to talk about
 
 ## Testing
 
+Testing goals:
+- speed up development - no need to spin up a large system with all the dependencies
+- regressions - make sure the new changes did not break anything that was here before
+- explain the purpose of the code behavior - adding description to the test might provide some context on why this is expected to work this way
+
 TODO: **need help here, open for any discussion**
 
 ### Unit tests
@@ -178,7 +201,7 @@ Over past several years the concept of distributed tracing became one of the mos
 
 For basic distributed tracing a unique key, shared between all application's modules, has to be logged. This approach can be seen in [this](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/transport/grpc/httpgateway/middleware.go#L14) example. This will not produce fancy diagrams or maps, but it's a good starting point.
 
-It is also possible to use paid service providers, like [DataDog](https://www.datadoghq.com/), that allows to not only trace each request inside the application, but also provides ready to use libraries for other languages, like Flutter, Java or iOS, so it is possible to monitor every step of the process. This kind of services generally provides more details and are capable of creating flow charts based on the tracing informations. 
+It is also possible to use paid service providers, like [DataDog](https://www.datadoghq.com/), that allows to not only trace each request inside the application, but also provides ready to use libraries for other languages, like Flutter, Java or iOS, so it is possible to monitor every step of the process. This kind of services generally provides more details and are capable of creating flow charts based on the tracing information. 
 
 #### Metrics
 
