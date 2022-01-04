@@ -201,7 +201,7 @@ Over past several years the concept of distributed tracing became one of the mos
 
 For basic distributed tracing a unique key, shared between all application's modules, has to be logged. This approach can be seen in [this](https://github.com/GoSolve-io/go-application-guide/blob/master/internal/transport/grpc/httpgateway/middleware.go#L14) example. This will not produce fancy diagrams or maps, but it's a good starting point.
 
-It is also possible to use paid service providers, like [DataDog](https://www.datadoghq.com/), that allows to not only trace each request inside the application, but also provides ready to use libraries for other languages, like Flutter, Java or iOS, so it is possible to monitor every step of the process. This kind of services generally provides more details and are capable of creating flow charts based on the tracing informations. 
+It is also possible to use paid service providers, like [DataDog](https://www.datadoghq.com/), that allows to not only trace each request inside the application, but also provides ready to use libraries for other languages, like Flutter, Java or iOS, so it is possible to monitor every step of the process. This kind of services generally provides more details and are capable of creating flow charts based on the tracing information. 
 
 #### Metrics
 
